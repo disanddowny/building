@@ -2,51 +2,102 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>빌딩 짓기 게임</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공실 없는 우리 빌딩</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
+            min-height: 100vh;
+            padding: 16px;
         }
 
-        .game-container {
-            display: flex;
-            gap: 40px;
-            margin: 20px;
-            align-items: flex-end;
+        .header {
+            text-align: center;
+            margin-bottom: 12px;
         }
 
-        .building-wrapper {
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .game-area {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            width: 100%;
+            max-width: 500px;
+            gap: 32px;
+        }
+
+        .buildings {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+            position: relative;
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 8px;
         }
 
         .building {
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .building-cells {
+            display: flex;
             flex-direction: column-reverse;
-            gap: 5px;
+            gap: 4px;
         }
 
         .cell {
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             border: 2px solid #333;
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: white;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 16px;
             font-weight: bold;
+            border-radius: 4px;
+            transition: all 0.2s ease;
         }
 
         .cell:hover:not(.filled) {
-            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .cell.filled {
+            animation: cellFill 0.3s ease-out;
+        }
+
+        @keyframes cellFill {
+            0% {
+                transform: scale(0.8);
+                background-color: white;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         #building1 .filled {
@@ -65,33 +116,147 @@
         }
 
         .building-score {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: bold;
+            color: #333;
+            min-width: 40px;
             text-align: center;
-            padding: 5px;
+            margin-top: 8px;
         }
 
         .total-score {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-left: 8px;
+        }
+
+        .control-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .card-display {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
             font-size: 24px;
             font-weight: bold;
-            margin-top: 20px;
-            color: #333;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
         }
 
-        #drawButton {
-            padding: 10px 20px;
-            font-size: 18px;
-            margin: 20px;
+        .card-display.invalid {
+            background-color: #ffebee;
+        }
+
+        .instruction {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .game-button {
+            padding: 12px 24px;
+            font-size: 16px;
             cursor: pointer;
-            background-color: #FF5722;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
+            background-color: #FF5722;
+            transition: transform 0.1s;
         }
 
-        #drawButton:disabled {
-            background-color: #cccccc;
+        .game-button:active {
+            transform: scale(0.98);
+        }
+
+        #rerollButton {
+            background-color: #FF9800;
+            display: none;
+        }
+
+        .warning {
+            color: #ff0000;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+            background-color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .cell.invalid {
+            background-color: #e0e0e0;
             cursor: not-allowed;
+        }
+
+        .cell.x2 {
+            position: relative;
+        }
+
+        .cell.x2:before {
+            content: "×2";
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 12px;
+            color: #FF9800;
+        }
+
+        .cell.filled.x2 {
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, 
+                transparent 25%, transparent 50%, 
+                rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, 
+                transparent 75%, transparent);
+            background-size: 20px 20px;
+        }
+
+        .info-buttons {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .info-button {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background-color: #e0e0e0;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .info-button:hover {
+            background-color: #d0d0d0;
         }
 
         .modal {
@@ -102,151 +267,460 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
         }
 
         .modal-content {
             background-color: white;
-            padding: 20px;
-            border-radius: 5px;
+            padding: 24px;
+            border-radius: 12px;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalAppear 0.3s ease-out;
+        }
+
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -48%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .modal h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .modal p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .modal ul {
+            padding-left: 20px;
+            margin-bottom: 16px;
+        }
+
+        .modal li {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .ranking-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+
+        .ranking-item.me {
+            color: #FF5722;
+            font-weight: bold;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: #FF5722;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleAnimation 0.8s ease-out forwards;
+            box-shadow: 0 0 8px rgba(255, 87, 34, 0.8);
+        }
+
+        @keyframes particleAnimation {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .game-over-content {
             text-align: center;
         }
 
-        #currentCard {
+        .game-over-score {
             font-size: 24px;
             font-weight: bold;
-            margin: 10px;
+            color: #FF5722;
+            margin: 20px 0;
         }
-        .warning-message {
-        color: #ff0000;
-        font-weight: bold;
-        font-size: 18px;
-        margin: 10px;
-        display: none;
-    }
 
-    #rerollButton {
-        padding: 10px 20px;
-        font-size: 18px;
-        margin: 20px;
-        cursor: pointer;
-        background-color: #FF9800;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        display: none;
-    }
+        .restart-button {
+            background-color: #FF5722;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
 
-    #rerollCount {
-        color: #FF9800;
-        font-weight: bold;
-        margin-left: 5px;
-    } .cell.invalid {
-        background-color: #e0e0e0;
-        cursor: not-allowed;
-    }
+        .restart-button:active {
+            transform: scale(0.98);
+        }
 
-    .cell.x2 {
-        position: relative;
-    }
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
 
-    .cell.x2:before {
-        content: "×2";
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        font-size: 12px;
-        color: #FF9800;
-    }
+            .header {
+                margin-bottom: 8px;
+            }
 
-    .cell.filled.x2 {
-        background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, 
-            transparent 25%, transparent 50%, 
-            rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, 
-            transparent 75%, transparent);
-        background-size: 20px 20px;
-    }
-</style>
+            .header h1 {
+                font-size: 20px;
+                margin-bottom: 6px;
+            }
+
+            .game-area {
+                gap: 24px;
+            }
+
+            .buildings {
+                margin-bottom: 6px;
+            }
+
+            .cell {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+
+            .building-score {
+                bottom: -20px;
+            }
+
+            .total-score {
+                font-size: 14px;
+            }
+
+            .card-display {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .instruction {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+
+            .game-button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .warning {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+
+            .info-buttons {
+                top: 12px;
+                right: 12px;
+            }
+
+            .info-button {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .modal h2 {
+                font-size: 18px;
+            }
+
+            .modal p, .modal li {
+                font-size: 13px;
+            }
+
+            .game-over-score {
+                font-size: 20px;
+            }
+
+            .restart-button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .header {
+                margin-bottom: 6px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+                margin-bottom: 4px;
+            }
+
+            .game-area {
+                gap: 20px;
+            }
+
+            .buildings {
+                margin-bottom: 4px;
+            }
+
+            .cell {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+
+            .building-score {
+                bottom: -18px;
+            }
+
+            .total-score {
+                font-size: 12px;
+            }
+
+            .card-display {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .instruction {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            .game-button {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+
+            .warning {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            .info-buttons {
+                top: 8px;
+                right: 8px;
+            }
+
+            .info-button {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+            }
+
+            .modal-content {
+                padding: 16px;
+            }
+
+            .modal h2 {
+                font-size: 16px;
+            }
+
+            .modal p, .modal li {
+                font-size: 12px;
+            }
+
+            .game-over-score {
+                font-size: 18px;
+                margin: 16px 0;
+            }
+
+            .restart-button {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>빌딩 짓기 게임</h1>
-    <div id="currentCard">현재 카드: -</div>
-    <div class="warning-message" id="warningMessage">
-        이 카드를 놓을 수 있는 곳이 없습니다! 
-        <span id="rerollCount">남은 기회: 2번</span>
+    <div class="header">
+        <h1>공실 없는 우리 빌딩</h1>
     </div>
-    <button id="rerollButton">다시 뽑기</button>
-    <button id="drawButton">카드 뽑기</button>
-    <div class="game-container">
-        <div class="building-wrapper">
-            <div class="building" id="building1"></div>
-            <div class="building-score" id="score1">0점</div>
+    <div class="game-area">
+        <div class="info-buttons">
+            <button class="info-button" id="tutorialButton">?</button>
+            <button class="info-button" id="rankingButton">🏆</button>
         </div>
-        <div class="building-wrapper">
-            <div class="building" id="building2"></div>
-            <div class="building-score" id="score2">0점</div>
+        <div class="buildings">
+            <div class="building" id="building1">
+                <div class="building-cells"></div>
+                <div class="building-score" id="score1">0점</div>
+            </div>
+            <div class="building" id="building2">
+                <div class="building-cells"></div>
+                <div class="building-score" id="score2">0점</div>
+            </div>
+            <div class="building" id="building3">
+                <div class="building-cells"></div>
+                <div class="building-score" id="score3">0점</div>
+            </div>
         </div>
-        <div class="building-wrapper">
-            <div class="building" id="building3"></div>
-            <div class="building-score" id="score3">0점</div>
+        <div class="control-area">
+            <div class="card-display" id="currentCard">-</div>
+            <div class="instruction" id="instructionLabel">세입자 넣을 층 누르기</div>
+            <div class="buttons">
+                <button id="drawButton" class="game-button">세입자 뽑기</button>
+                <button id="rerollButton" class="game-button">다시 뽑기</button>
+            </div>
+            <div class="warning" id="warningMessage">
+                이 세입자를 넣을 층이 없습니다! 
+                <span id="rerollCount">남은 기회: 2번</span>
+            </div>
         </div>
     </div>
-    <div class="total-score" id="totalScore">총점: 0점</div>
+
+    <div class="modal" id="tutorialModal">
+        <div class="modal-content">
+            <button class="close-button" onclick="closeModal('tutorialModal')">×</button>
+            <h2>게임 방법</h2>
+            <ul>
+                <li>'세입자 뽑기' 버튼을 누르세요.</li>
+                <li>1~20 사이로 랜덤하게 뽑힌 세입자를 빌딩의 아무 빈 층에나 입주시킬 수 있습니다.</li>
+                <li>단, 항상 아래층보다 큰 숫자의 세입자만 입주시킬 수 있습니다.</li>
+                <li>×2 표시가 있는 층은 점수가 2배가 됩니다.</li>
+                <li>1층부터 연속된 층의 점수를 모두 더한 것이 각 건물의 점수입니다.</li>
+                <li>세입자를 넣을 층이 없으면 최대 2번까지 다시 뽑을 수 있습니다.</li>
+                <li>더 이상 다시 뽑을 수 없을 때 게임이 종료되고 세 건물의 점수의 합이 총점입니다.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="modal" id="rankingModal">
+        <div class="modal-content">
+            <button class="close-button" onclick="closeModal('rankingModal')">×</button>
+            <h2>랭킹</h2>
+            <ul class="ranking-list" id="rankingList">
+                <li class="ranking-item">
+                    <span>1위 이유원</span>
+                    <span>324점</span>
+                </li>
+                <li class="ranking-item">
+                    <span>2위 차필근</span>
+                    <span>210점</span>
+                </li>
+                <li class="ranking-item">
+                    <span>3위 정윤지</span>
+                    <span>151점</span>
+                </li>
+                <li class="ranking-item">
+                    <span>4위 오성국</span>
+                    <span>99점</span>
+                </li>
+                <li class="ranking-item">
+                    <span>5위 김민지</span>
+                    <span>61점</span>
+                </li>
+            </ul>
+        </div>
+    </div>
 
     <div class="modal" id="gameOverModal">
-        <div class="modal-content">
+        <div class="modal-content game-over-content">
             <h2>게임 종료!</h2>
-            <p id="finalScore"></p>
-            <button onclick="location.reload()">다시 시작</button>
+            <div class="game-over-score" id="finalScore">총점: 0점</div>
+            <button class="restart-button" onclick="restartGame()">다시하기</button>
         </div>
     </div>
 
     <script>
         let currentCard = null;
         let consecutiveRerolls = 0;
-const BUILDING_HEIGHT = 10;
-let gameOver = false;
-let rerollsLeft = 2; 
+        const BUILDING_HEIGHT = 10;
+        let gameOver = false;
+        let rerollsLeft = 2;
 
-function initializeBuildings() {
-    const buildings = document.querySelectorAll('.building');
-    buildings.forEach((building, buildingIndex) => {
-        for (let i = 0; i < BUILDING_HEIGHT; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-            
-            // x2 칸 설정
-            if ((buildingIndex === 0 && i === 1) || 
-                (buildingIndex === 1 && i === 4) || 
-                (buildingIndex === 2 && i === 7)) {
-                cell.classList.add('x2');
+        function initializeBuildings() {
+            const buildings = document.querySelectorAll('.building');
+            buildings.forEach((building, buildingIndex) => {
+                const buildingCells = building.querySelector('.building-cells');
+                
+                for (let i = 0; i < BUILDING_HEIGHT; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    if ((buildingIndex === 0 && i === 1) || 
+                        (buildingIndex === 1 && i === 4) || 
+                        (buildingIndex === 2 && i === 7)) {
+                        cell.classList.add('x2');
+                    }
+                    
+                    cell.addEventListener('click', () => handleCellClick(cell));
+                    buildingCells.appendChild(cell);
+                }
+            });
+            updateInvalidCells();
+        }
+
+        function updateInvalidCells() {
+            if (!currentCard) {
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('invalid');
+                });
+                return;
             }
-            
-            cell.addEventListener('click', () => handleCellClick(cell));
-            building.appendChild(cell);
-        }
-    });
-    updateInvalidCells();
-}
-function updateInvalidCells() {
-    if (!currentCard) {
-        document.querySelectorAll('.cell').forEach(cell => {
-            cell.classList.remove('invalid');
-        });
-        return;
-    }
 
-    document.querySelectorAll('.cell:not(.filled)').forEach(cell => {
-        if (!isMoveValid(cell, currentCard)) {
-            cell.classList.add('invalid');
-        } else {
-            cell.classList.remove('invalid');
+            document.querySelectorAll('.cell:not(.filled)').forEach(cell => {
+                if (!isMoveValid(cell, currentCard)) {
+                    cell.classList.add('invalid');
+                } else {
+                    cell.classList.remove('invalid');
+                }
+            });
         }
-    });
-}
+
         function canPlaceAnywhere(value) {
             const allCells = document.querySelectorAll('.cell');
             for (const cell of allCells) {
@@ -258,35 +732,44 @@ function updateInvalidCells() {
         }
 
         function drawCard() {
-    if (gameOver) return;
-    
-    const warningMessage = document.getElementById('warningMessage');
-    const rerollButton = document.getElementById('rerollButton');
-    warningMessage.style.display = 'none';
-    rerollButton.style.display = 'none';
-    
-    currentCard = Math.floor(Math.random() * 20) + 1;
-    document.getElementById('currentCard').textContent = `현재 카드: ${currentCard}`;
-    document.getElementById('drawButton').disabled = true;
+            if (gameOver) return;
+            
+            const warningMessage = document.getElementById('warningMessage');
+            const rerollButton = document.getElementById('rerollButton');
+            const drawButton = document.getElementById('drawButton');
+            const instructionLabel = document.getElementById('instructionLabel');
+            const currentCardDisplay = document.getElementById('currentCard');
+            
+            warningMessage.style.display = 'none';
+            rerollButton.style.display = 'none';
+            drawButton.style.display = 'none';
+            instructionLabel.style.display = 'none';
+            currentCardDisplay.classList.remove('invalid');
+            
+            currentCard = Math.floor(Math.random() * 20) + 1;
+            currentCardDisplay.textContent = currentCard;
+            document.getElementById('drawButton').disabled = true;
 
-    updateInvalidCells();
+            updateInvalidCells();
 
-    if (!canPlaceAnywhere(currentCard)) {
-        if (consecutiveRerolls < 2) {
-            warningMessage.style.display = 'block';
-            rerollButton.style.display = 'inline-block';
-            document.getElementById('rerollCount').textContent = `남은 기회: ${2 - consecutiveRerolls}번`;
-        } else {
-            endGame();
+            if (!canPlaceAnywhere(currentCard)) {
+                if (consecutiveRerolls < 2) {
+                    warningMessage.style.display = 'block';
+                    rerollButton.style.display = 'inline-block';
+                    document.getElementById('rerollCount').textContent = `남은 기회: ${2 - consecutiveRerolls}번`;
+                    currentCardDisplay.classList.add('invalid');
+                } else {
+                    endGame();
+                }
+            } else {
+                instructionLabel.style.display = 'block';
+            }
         }
-    }
-}
-function reroll() {
-    consecutiveRerolls++;
-    drawCard();
-}
 
-
+        function reroll() {
+            consecutiveRerolls++;
+            drawCard();
+        }
 
         function isMoveValid(cell, value) {
             const building = cell.parentElement;
@@ -312,45 +795,74 @@ function reroll() {
             return true;
         }
 
-        function handleCellClick(cell) {
-    if (gameOver || !currentCard || cell.classList.contains('filled') || cell.classList.contains('invalid')) return;
-
-    if (!isMoveValid(cell, currentCard)) return;
-
-    cell.textContent = currentCard;
-    cell.classList.add('filled');
-    currentCard = null;
-    document.getElementById('currentCard').textContent = '현재 카드: -';
-    document.getElementById('drawButton').disabled = false;
-    consecutiveRerolls = 0;  // 성공적으로 카드를 놓았으므로 리롤 카운트 초기화
-
-    updateAllBuildingScores();
-    updateInvalidCells();
-}
-function calculateBuildingScore(building) {
-    const cells = Array.from(building.children);
-    let maxScore = 0;
-    let currentScore = 0;
-    let isConnectedToGround = true;
-
-    for (let i = 0; i < cells.length; i++) {
-        if (!cells[i].classList.contains('filled')) {
-            isConnectedToGround = false;
-            currentScore = 0;
-        } else {
-            if (isConnectedToGround) {
-                let value = parseInt(cells[i].textContent);
-                if (cells[i].classList.contains('x2')) {
-                    value *= 2;
-                }
-                currentScore += value;
-                maxScore = currentScore;
+        function createParticles(x, y) {
+            const colors = ['#FF5722', '#FF9800', '#FFC107', '#FFEB3B', '#FF4081'];
+            const particleCount = 12;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 8 + 4;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 50 + 30;
+                const vx = Math.cos(angle) * velocity;
+                const vy = Math.sin(angle) * velocity;
+                
+                particle.style.transform = `translate(${vx}px, ${vy}px)`;
+                document.body.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 800);
             }
         }
-    }
 
-    return maxScore;
-}
+        function handleCellClick(cell) {
+            if (gameOver || !currentCard || cell.classList.contains('filled') || cell.classList.contains('invalid')) return;
+
+            if (!isMoveValid(cell, currentCard)) return;
+
+            cell.textContent = currentCard;
+            cell.classList.add('filled');
+            currentCard = null;
+            document.getElementById('currentCard').textContent = '-';
+            document.getElementById('drawButton').disabled = false;
+            document.getElementById('drawButton').style.display = 'inline-block';
+            document.getElementById('instructionLabel').style.display = 'none';
+            consecutiveRerolls = 0;
+
+            updateAllBuildingScores();
+            updateInvalidCells();
+        }
+
+        function calculateBuildingScore(building) {
+            const cells = Array.from(building.querySelectorAll('.cell'));
+            let score = 0;
+            let isConnectedToGround = true;
+
+            for (let i = 0; i < cells.length; i++) {
+                if (!cells[i].classList.contains('filled')) {
+                    isConnectedToGround = false;
+                    break;
+                }
+                
+                if (isConnectedToGround) {
+                    let value = parseInt(cells[i].textContent);
+                    if (cells[i].classList.contains('x2')) {
+                        value *= 2;
+                    }
+                    score += value;
+                }
+            }
+
+            return score;
+        }
 
         function updateAllBuildingScores() {
             const buildings = document.querySelectorAll('.building');
@@ -358,27 +870,107 @@ function calculateBuildingScore(building) {
             
             buildings.forEach((building, index) => {
                 const score = calculateBuildingScore(building);
-                document.getElementById(`score${index + 1}`).textContent = `${score}점`;
+                const scoreElement = building.querySelector('.building-score');
+                if (scoreElement) {
+                    scoreElement.textContent = `${score}점`;
+                }
                 totalScore += score;
             });
 
-            document.getElementById('totalScore').textContent = `총점: ${totalScore}점`;
             return totalScore;
         }
 
         function endGame() {
-    gameOver = true;
-    const score = updateAllBuildingScores();
-    document.getElementById('finalScore').textContent = `최종 점수: ${score}점`;
-    document.getElementById('gameOverModal').style.display = 'block';
-    document.getElementById('drawButton').disabled = true;
-    document.getElementById('rerollButton').style.display = 'none';
-    document.getElementById('warningMessage').style.display = 'none';
-}
-        document.getElementById('drawButton').addEventListener('click', drawCard);
-        initializeBuildings();
+            gameOver = true;
+            const score = updateAllBuildingScores();
+            document.getElementById('drawButton').disabled = true;
+            document.getElementById('rerollButton').style.display = 'none';
+            document.getElementById('warningMessage').style.display = 'none';
+            document.getElementById('finalScore').textContent = `총점: ${score}점`;
+            showModal('gameOverModal');
+            updateRanking(score);
+        }
 
-document.getElementById('rerollButton').addEventListener('click', reroll);
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function updateRanking(score) {
+            const rankingList = document.getElementById('rankingList');
+            
+            // 기존 '나' 항목 제거
+            const existingMe = rankingList.querySelector('.me');
+            if (existingMe) {
+                existingMe.remove();
+            }
+
+            // 모든 랭킹 항목을 배열로 변환
+            const allRankings = Array.from(rankingList.children).map(item => {
+                const name = item.querySelector('span:first-child').textContent;
+                const score = parseInt(item.querySelector('span:last-child').textContent);
+                return { name, score, element: item };
+            });
+
+            // '나' 항목 추가
+            allRankings.push({ name: '나', score, element: null });
+
+            // 점수 순으로 정렬
+            allRankings.sort((a, b) => b.score - a.score);
+
+            // 랭킹 목록 초기화
+            rankingList.innerHTML = '';
+
+            // 정렬된 순서대로 다시 추가
+            allRankings.forEach((item, index) => {
+                const rank = index + 1;
+                const li = document.createElement('li');
+                li.className = item.name === '나' ? 'ranking-item me' : 'ranking-item';
+                
+                if (item.name === '나') {
+                    li.innerHTML = `<span>${rank}위 나</span><span>${item.score}점</span>`;
+                } else {
+                    li.innerHTML = `<span>${rank}위 ${item.name}</span><span>${item.score}점</span>`;
+                }
+                
+                rankingList.appendChild(li);
+            });
+        }
+
+        function restartGame() {
+            gameOver = false;
+            consecutiveRerolls = 0;
+            currentCard = null;
+            document.getElementById('currentCard').textContent = '-';
+            document.getElementById('currentCard').classList.remove('invalid');
+            document.getElementById('drawButton').disabled = false;
+            document.getElementById('drawButton').style.display = 'inline-block';
+            document.getElementById('rerollButton').style.display = 'none';
+            document.getElementById('warningMessage').style.display = 'none';
+            document.getElementById('instructionLabel').style.display = 'none';
+            
+            const buildings = document.querySelectorAll('.building');
+            buildings.forEach(building => {
+                const cells = building.querySelectorAll('.cell');
+                cells.forEach(cell => {
+                    cell.textContent = '';
+                    cell.classList.remove('filled');
+                });
+            });
+
+            updateAllBuildingScores();
+            updateInvalidCells();
+            closeModal('gameOverModal');
+        }
+
+        document.getElementById('drawButton').addEventListener('click', drawCard);
+        document.getElementById('rerollButton').addEventListener('click', reroll);
+        document.getElementById('tutorialButton').addEventListener('click', () => showModal('tutorialModal'));
+        document.getElementById('rankingButton').addEventListener('click', () => showModal('rankingModal'));
+        initializeBuildings();
     </script>
 </body>
 </html>
