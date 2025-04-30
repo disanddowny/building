@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>빌딩 짓기 게임</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 40px;
+            margin: 20px;
+            align-items: flex-end;
+        }
+
+        .building-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .building {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 5px;
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .cell:hover:not(.filled) {
+            opacity: 0.8;
+        }
+
+        #building1 .filled {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #building2 .filled {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        #building3 .filled {
+            background-color: #9C27B0;
+            color: white;
+        }
+
+        .building-score {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .total-score {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        #drawButton {
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 20px;
+            cursor: pointer;
+            background-color: #FF5722;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #drawButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        #currentCard {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .warning-message {
+        color: #ff0000;
+        font-weight: bold;
+        font-size: 18px;
+        margin: 10px;
+        display: none;
+    }
+
+    #rerollButton {
+        padding: 10px 20px;
+        font-size: 18px;
+        margin: 20px;
+        cursor: pointer;
+        background-color: #FF9800;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        display: none;
+    }
+
+    #rerollCount {
+        color: #FF9800;
+        font-weight: bold;
+        margin-left: 5px;
+    } .cell.invalid {
+        background-color: #e0e0e0;
+        cursor: not-allowed;
+    }
+
+    .cell.x2 {
+        position: relative;
+    }
+
+    .cell.x2:before {
+        content: "×2";
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 12px;
+        color: #FF9800;
+    }
+
+    .cell.filled.x2 {
+        background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, 
+            transparent 25%, transparent 50%, 
+            rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, 
+            transparent 75%, transparent);
+        background-size: 20px 20px;
+    }
+</style>
+</head>
+<body>
+    <h1>빌딩 짓기 게임</h1>
+    <div id="currentCard">현재 카드: -</div>
+    <div class="warning-message" id="warningMessage">
+        이 카드를 놓을 수 있는 곳이 없습니다! 
+        <span id="rerollCount">남은 기회: 2번</span>
+    </div>
+    <button id="rerollButton">다시 뽑기</button>
+    <button id="drawButton">카드 뽑기</button>
+    <div class="game-container">
+        <div class="building-wrapper">
+            <div class="building" id="building1"></div>
+            <div class="building-score" id="score1">0점</div>
+        </div>
+        <div class="building-wrapper">
+            <div class="building" id="building2"></div>
+            <div class="building-score" id="score2">0점</div>
+        </div>
+        <div class="building-wrapper">
+            <div class="building" id="building3"></div>
+            <div class="building-score" id="score3">0점</div>
+        </div>
+    </div>
+    <div class="total-score" id="totalScore">총점: 0점</div>
+
+    <div class="modal" id="gameOverModal">
+        <div class="modal-content">
+            <h2>게임 종료!</h2>
+            <p id="finalScore"></p>
+            <button onclick="location.reload()">다시 시작</button>
+        </div>
+    </div>
+
+    <script>
+        let currentCard = null;
+        let consecutiveRerolls = 0;
+const BUILDING_HEIGHT = 10;
+let gameOver = false;
+let rerollsLeft = 2; 
+
+function initializeBuildings() {
+    const buildings = document.querySelectorAll('.building');
+    buildings.forEach((building, buildingIndex) => {
+        for (let i = 0; i < BUILDING_HEIGHT; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            
+            // x2 칸 설정
+            if ((buildingIndex === 0 && i === 1) || 
+                (buildingIndex === 1 && i === 4) || 
+                (buildingIndex === 2 && i === 7)) {
+                cell.classList.add('x2');
+            }
+            
+            cell.addEventListener('click', () => handleCellClick(cell));
+            building.appendChild(cell);
+        }
+    });
+    updateInvalidCells();
+}
+function updateInvalidCells() {
+    if (!currentCard) {
+        document.querySelectorAll('.cell').forEach(cell => {
+            cell.classList.remove('invalid');
+        });
+        return;
+    }
+
+    document.querySelectorAll('.cell:not(.filled)').forEach(cell => {
+        if (!isMoveValid(cell, currentCard)) {
+            cell.classList.add('invalid');
+        } else {
+            cell.classList.remove('invalid');
+        }
+    });
+}
+        function canPlaceAnywhere(value) {
+            const allCells = document.querySelectorAll('.cell');
+            for (const cell of allCells) {
+                if (!cell.classList.contains('filled') && isMoveValid(cell, value)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function drawCard() {
+    if (gameOver) return;
+    
+    const warningMessage = document.getElementById('warningMessage');
+    const rerollButton = document.getElementById('rerollButton');
+    warningMessage.style.display = 'none';
+    rerollButton.style.display = 'none';
+    
+    currentCard = Math.floor(Math.random() * 20) + 1;
+    document.getElementById('currentCard').textContent = `현재 카드: ${currentCard}`;
+    document.getElementById('drawButton').disabled = true;
+
+    updateInvalidCells();
+
+    if (!canPlaceAnywhere(currentCard)) {
+        if (consecutiveRerolls < 2) {
+            warningMessage.style.display = 'block';
+            rerollButton.style.display = 'inline-block';
+            document.getElementById('rerollCount').textContent = `남은 기회: ${2 - consecutiveRerolls}번`;
+        } else {
+            endGame();
+        }
+    }
+}
+function reroll() {
+    consecutiveRerolls++;
+    drawCard();
+}
+
+
+
+        function isMoveValid(cell, value) {
+            const building = cell.parentElement;
+            const cells = Array.from(building.children);
+            const cellIndex = cells.indexOf(cell);
+
+            for (let i = 0; i < cellIndex; i++) {
+                if (cells[i].classList.contains('filled')) {
+                    if (value <= parseInt(cells[i].textContent)) {
+                        return false;
+                    }
+                }
+            }
+
+            for (let i = cellIndex + 1; i < cells.length; i++) {
+                if (cells[i].classList.contains('filled')) {
+                    if (value >= parseInt(cells[i].textContent)) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        function handleCellClick(cell) {
+    if (gameOver || !currentCard || cell.classList.contains('filled') || cell.classList.contains('invalid')) return;
+
+    if (!isMoveValid(cell, currentCard)) return;
+
+    cell.textContent = currentCard;
+    cell.classList.add('filled');
+    currentCard = null;
+    document.getElementById('currentCard').textContent = '현재 카드: -';
+    document.getElementById('drawButton').disabled = false;
+    consecutiveRerolls = 0;  // 성공적으로 카드를 놓았으므로 리롤 카운트 초기화
+
+    updateAllBuildingScores();
+    updateInvalidCells();
+}
+function calculateBuildingScore(building) {
+    const cells = Array.from(building.children);
+    let maxScore = 0;
+    let currentScore = 0;
+    let isConnectedToGround = true;
+
+    for (let i = 0; i < cells.length; i++) {
+        if (!cells[i].classList.contains('filled')) {
+            isConnectedToGround = false;
+            currentScore = 0;
+        } else {
+            if (isConnectedToGround) {
+                let value = parseInt(cells[i].textContent);
+                if (cells[i].classList.contains('x2')) {
+                    value *= 2;
+                }
+                currentScore += value;
+                maxScore = currentScore;
+            }
+        }
+    }
+
+    return maxScore;
+}
+
+        function updateAllBuildingScores() {
+            const buildings = document.querySelectorAll('.building');
+            let totalScore = 0;
+            
+            buildings.forEach((building, index) => {
+                const score = calculateBuildingScore(building);
+                document.getElementById(`score${index + 1}`).textContent = `${score}점`;
+                totalScore += score;
+            });
+
+            document.getElementById('totalScore').textContent = `총점: ${totalScore}점`;
+            return totalScore;
+        }
+
+        function endGame() {
+    gameOver = true;
+    const score = updateAllBuildingScores();
+    document.getElementById('finalScore').textContent = `최종 점수: ${score}점`;
+    document.getElementById('gameOverModal').style.display = 'block';
+    document.getElementById('drawButton').disabled = true;
+    document.getElementById('rerollButton').style.display = 'none';
+    document.getElementById('warningMessage').style.display = 'none';
+}
+        document.getElementById('drawButton').addEventListener('click', drawCard);
+        initializeBuildings();
+
+document.getElementById('rerollButton').addEventListener('click', reroll);
+    </script>
+</body>
+</html>
