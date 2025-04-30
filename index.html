@@ -345,6 +345,16 @@
             font-weight: bold;
         }
 
+        .ranking-empty {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            margin-top: 16px;
+            padding: 8px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+
         .close-button {
             position: absolute;
             top: 12px;
@@ -666,6 +676,9 @@
                     <span>61점</span>
                 </li>
             </ul>
+            <div class="ranking-empty" id="rankingEmpty" style="display: none;">
+                플레이하고 랭킹을 등록하세요!
+            </div>
         </div>
     </div>
 
@@ -683,6 +696,14 @@
         const BUILDING_HEIGHT = 10;
         let gameOver = false;
         let rerollsLeft = 2;
+        let highScore = localStorage.getItem('highScore') || 0;
+
+        function updateHighScore(score) {
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('highScore', highScore);
+            }
+        }
 
         function initializeBuildings() {
             const buildings = document.querySelectorAll('.building');
@@ -889,6 +910,7 @@
             document.getElementById('rerollButton').style.display = 'none';
             document.getElementById('warningMessage').style.display = 'none';
             document.getElementById('finalScore').textContent = `총점: ${score}점`;
+            updateHighScore(score);
             showModal('gameOverModal');
             updateRanking(score);
         }
@@ -903,6 +925,7 @@
 
         function updateRanking(score) {
             const rankingList = document.getElementById('rankingList');
+            const rankingEmpty = document.getElementById('rankingEmpty');
             
             // 기존 '나' 항목 제거
             const existingMe = rankingList.querySelector('.me');
@@ -940,6 +963,13 @@
                 
                 rankingList.appendChild(li);
             });
+
+            // '나' 항목이 없으면 플레이 유도 메시지 표시
+            if (!allRankings.some(item => item.name === '나')) {
+                rankingEmpty.style.display = 'block';
+            } else {
+                rankingEmpty.style.display = 'none';
+            }
         }
 
         function restartGame() {
