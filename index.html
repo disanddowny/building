@@ -3,1030 +3,1173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5645882058141959"
-     crossorigin="anonymous"></script>
-    <title>공실 없는 우리 빌딩 </title>
-     <style>
+    <title>반지하 2033 광기의 트럭</title>
+    <style>
+        :root {
+            --primary-color: #3a3a3c;
+            --secondary-color: #2c2c2e;
+            --accent-color: #ff9500;
+            --text-color: #f5f5f7;
+            --border-color: #515154;
+            --danger-color: #ff3b30;
+            --success-color: #34c759;
+            --warning-color: #ffcc00;
+            --info-color: #5ac8fa;
+        }
+        
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            min-height: 100vh;
-            padding: 16px;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
         }
-
-        .header {
-            text-align: center;
-            margin-bottom: 12px;
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
         }
-
-        .header h1 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 8px;
+        
+        .resources-panel {
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
         }
-
-        .game-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 500px;
-            gap: 32px;
+        
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
         }
-
-        .buildings {
-            display: flex;
-            gap: 16px;
-            align-items: flex-end;
-            position: relative;
-            width: 100%;
-            justify-content: center;
-            margin-bottom: 8px;
-        }
-
-        .building {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
-        .building-cells {
-            display: flex;
-            flex-direction: column-reverse;
-            gap: 4px;
-        }
-
-        .cell {
-            width: 40px;
-            height: 40px;
-            border: 2px solid #333;
+        
+        .resource-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-            background-color: white;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 12px;
             border-radius: 4px;
-            transition: all 0.2s ease;
         }
-
-        .cell:hover:not(.filled) {
-            transform: scale(1.05);
-        }
-
-        .cell.filled {
-            animation: cellFill 0.3s ease-out;
-        }
-
-        @keyframes cellFill {
-            0% {
-                transform: scale(0.8);
-                background-color: white;
-            }
-            50% {
-                transform: scale(1.1);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        #building1 .filled {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        #building2 .filled {
-            background-color: #2196F3;
-            color: white;
-        }
-
-        #building3 .filled {
-            background-color: #9C27B0;
-            color: white;
-        }
-
-        .building-score {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-            min-width: 40px;
+        
+        .resource-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            display: inline-block;
             text-align: center;
-            margin-top: 8px;
         }
-
-        .total-score {
-            font-size: 16px;
+        
+        .resource-value {
             font-weight: bold;
-            color: #333;
+            color: var(--accent-color);
+        }
+        
+        h1, h2, h3 {
+            margin-bottom: 15px;
+            color: var(--accent-color);
+        }
+        
+        .characters-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .character-card {
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        
+        .character-card.dead {
+            opacity: 0.6;
+            background-color: #222;
+        }
+        
+        .character-name {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .selected-action {
+            font-size: 0.8em;
+            color: var(--accent-color);
             margin-left: 8px;
         }
-
-        .control-area {
+        
+        .character-trait {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            font-style: italic;
+            color: #aaa;
+        }
+        
+        .status-labels {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            width: 100%;
+            gap: 5px;
+            margin-bottom: 10px;
         }
-
-        .card-display {
-            width: 60px;
-            height: 60px;
-            border: 2px solid #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: white;
-            font-size: 24px;
-            font-weight: bold;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: background-color 0.3s;
+        
+        .status-label {
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background-color: var(--danger-color);
         }
-
-        .card-display.invalid {
-            background-color: #ffebee;
+        
+        .status-label.depressed {
+            background-color: var(--warning-color);
+            color: black;
         }
-
-        .instruction {
-            background-color: #4CAF50;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-            display: none;
+        
+        .status-label.injured {
+            background-color: var(--danger-color);
         }
-
-        .buttons {
-            display: flex;
-            gap: 16px;
+        
+        .status-label.dead {
+            background-color: black;
         }
-
-        .game-button {
-            padding: 12px 24px;
-            font-size: 16px;
-            cursor: pointer;
-            color: white;
+        
+        .actions-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .action-button {
+            padding: 8px;
             border: none;
-            border-radius: 8px;
-            background-color: #FF5722;
-            transition: transform 0.1s;
-        }
-
-        .game-button:active {
-            transform: scale(0.98);
-        }
-
-        #rerollButton {
-            background-color: #FF9800;
-            display: none;
-        }
-
-        .warning {
-            color: #ff0000;
-            font-weight: bold;
-            font-size: 14px;
-            text-align: center;
-            display: none;
-            background-color: #fff;
-            padding: 8px 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .cell.invalid {
-            background-color: #e0e0e0;
-            cursor: not-allowed;
-        }
-
-        .cell.x2 {
+            border-radius: 4px;
+            background-color: #515154;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
             position: relative;
         }
-
-        .cell.x2:before {
-            content: "×2";
+        
+        .action-button:hover {
+            background-color: #6d6d70;
+        }
+        
+        .action-button:disabled {
+            background-color: #3a3a3c;
+            color: #8e8e93;
+            cursor: not-allowed;
+        }
+        
+        .action-tooltip {
             position: absolute;
-            top: 2px;
-            right: 2px;
-            font-size: 12px;
-            color: #FF9800;
-        }
-
-        .cell.filled.x2 {
-            background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, 
-                transparent 25%, transparent 50%, 
-                rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, 
-                transparent 75%, transparent);
-            background-size: 20px 20px;
-        }
-
-        .info-buttons {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            display: flex;
-            gap: 8px;
-        }
-
-        .info-button {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: none;
-            background-color: #e0e0e0;
-            color: #666;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s;
-        }
-
-        .info-button:hover {
-            background-color: #d0d0d0;
-        }
-
-        .modal {
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.9);
+            padding: 8px 12px;
+            border-radius: 4px;
+            width: 200px;
+            z-index: 100;
             display: none;
+            font-size: 0.85em;
+            line-height: 1.4;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .action-button:hover .action-tooltip {
+            display: block;
+        }
+        
+        .game-panel {
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .end-turn-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .end-turn-button {
+            padding: 12px 24px;
+            background-color: var(--accent-color);
+            color: black;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+        
+        .end-turn-button:disabled {
+            background-color: #8e8e93;
+            cursor: not-allowed;
+        }
+        
+        .message-log {
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .message {
+            margin-bottom: 10px;
+            line-height: 1.4;
+            padding-left: 10px;
+            border-left: 3px solid var(--border-color);
+        }
+        
+        .continue-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: var(--accent-color);
+            color: black;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .game-status {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .game-status-item {
+            font-weight: bold;
+        }
+        
+        .progress-container {
+            height: 20px;
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--success-color);
+            transition: width 0.3s ease;
+        }
+        
+        .progress-bar.defense {
+            background-color: var(--info-color);
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
             z-index: 1000;
         }
-
+        
         .modal-content {
-            background-color: white;
-            padding: 24px;
-            border-radius: 12px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 400px;
-            max-height: 80vh;
-            overflow-y: auto;
-            animation: modalAppear 0.3s ease-out;
-        }
-
-        @keyframes modalAppear {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -48%);
-            }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%);
-            }
-        }
-
-        .modal h2 {
-            font-size: 20px;
-            margin-bottom: 16px;
-            color: #333;
-        }
-
-        .modal p {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #666;
-            margin-bottom: 12px;
-        }
-
-        .modal ul {
-            padding-left: 20px;
-            margin-bottom: 16px;
-        }
-
-        .modal li {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #666;
-            margin-bottom: 8px;
-        }
-
-        .ranking-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .ranking-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .ranking-item:last-child {
-            border-bottom: none;
-        }
-
-        .ranking-item.me {
-            color: #FF5722;
-            font-weight: bold;
-        }
-
-        .ranking-empty {
-            text-align: center;
-            color: #666;
-            font-style: italic;
-            margin-top: 16px;
-            padding: 8px;
-            background-color: #f5f5f5;
-            border-radius: 4px;
-        }
-
-        .close-button {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #666;
-        }
-
-        .particle {
-            position: absolute;
-            background-color: #FF5722;
-            border-radius: 50%;
-            pointer-events: none;
-            animation: particleAnimation 0.8s ease-out forwards;
-            box-shadow: 0 0 8px rgba(255, 87, 34, 0.8);
-        }
-
-        @keyframes particleAnimation {
-            0% {
-                transform: scale(0);
-                opacity: 1;
-            }
-            50% {
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1.5);
-                opacity: 0;
-            }
-        }
-
-        .game-over-content {
-            text-align: center;
-        }
-
-        .game-over-score {
-            font-size: 24px;
-            font-weight: bold;
-            color: #FF5722;
-            margin: 20px 0;
-        }
-
-        .restart-button {
-            background-color: #FF5722;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
+            background-color: var(--primary-color);
+            padding: 20px;
             border-radius: 8px;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .modal-title {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .modal-button {
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: var(--accent-color);
+            color: black;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            transition: transform 0.1s;
-        }
-
-        .restart-button:active {
-            transform: scale(0.98);
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
-
-            .header {
-                margin-bottom: 8px;
-            }
-
-            .header h1 {
-                font-size: 20px;
-                margin-bottom: 6px;
-            }
-
-            .game-area {
-                gap: 24px;
-            }
-
-            .buildings {
-                margin-bottom: 6px;
-            }
-
-            .cell {
-                width: 35px;
-                height: 35px;
-                font-size: 14px;
-            }
-
-            .building-score {
-                bottom: -20px;
-            }
-
-            .total-score {
-                font-size: 14px;
-            }
-
-            .card-display {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-
-            .instruction {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
-
-            .game-button {
-                padding: 10px 20px;
-                font-size: 14px;
-            }
-
-            .warning {
-                font-size: 12px;
-                padding: 6px 12px;
-            }
-
-            .info-buttons {
-                top: 12px;
-                right: 12px;
-            }
-
-            .info-button {
-                width: 28px;
-                height: 28px;
-                font-size: 14px;
-            }
-
-            .modal-content {
-                padding: 20px;
-            }
-
-            .modal h2 {
-                font-size: 18px;
-            }
-
-            .modal p, .modal li {
-                font-size: 13px;
-            }
-
-            .game-over-score {
-                font-size: 20px;
-            }
-
-            .restart-button {
-                padding: 10px 20px;
-                font-size: 14px;
-            }
-        }
-
-        @media (max-height: 600px) {
-            body {
-                padding: 12px;
-            }
-
-            .header {
-                margin-bottom: 6px;
-            }
-
-            .header h1 {
-                font-size: 18px;
-                margin-bottom: 4px;
-            }
-
-            .game-area {
-                gap: 20px;
-            }
-
-            .buildings {
-                margin-bottom: 4px;
-            }
-
-            .cell {
-                width: 30px;
-                height: 30px;
-                font-size: 12px;
-            }
-
-            .building-score {
-                bottom: -18px;
-            }
-
-            .total-score {
-                font-size: 12px;
-            }
-
-            .card-display {
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
-            }
-
-            .instruction {
-                font-size: 11px;
-                padding: 4px 8px;
-            }
-
-            .game-button {
-                padding: 8px 16px;
-                font-size: 12px;
-            }
-
-            .warning {
-                font-size: 11px;
-                padding: 4px 8px;
-            }
-
-            .info-buttons {
-                top: 8px;
-                right: 8px;
-            }
-
-            .info-button {
-                width: 24px;
-                height: 24px;
-                font-size: 12px;
-            }
-
-            .modal-content {
-                padding: 16px;
-            }
-
-            .modal h2 {
-                font-size: 16px;
-            }
-
-            .modal p, .modal li {
-                font-size: 12px;
-            }
-
-            .game-over-score {
-                font-size: 18px;
-                margin: 16px 0;
-            }
-
-            .restart-button {
-                padding: 8px 16px;
-                font-size: 12px;
-            }
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>공실 없는 우리 빌딩</h1>
+    <h1>반지하 2033 광기의 트럭</h1>
+    
+    <div class="game-container">
+        <div class="left-panel">
+            <div class="resources-panel">
+                <h2>자원</h2>
+                <div class="resource-grid">
+                    <div class="resource-item">
+                        <div><span class="resource-icon">🥩</span> 고기</div>
+                        <div class="resource-value" id="meat-value">3</div>
+                    </div>
+                    <div class="resource-item">
+                        <div><span class="resource-icon">🥕</span> 야채</div>
+                        <div class="resource-value" id="vegetables-value">3</div>
+                    </div>
+                    <div class="resource-item">
+                        <div><span class="resource-icon">🔧</span> 부품</div>
+                        <div class="resource-value" id="parts-value">0</div>
+                    </div>
+                    <div class="resource-item">
+                        <div><span class="resource-icon">🍺</span> 술</div>
+                        <div class="resource-value" id="alcohol-value">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-panel">
+                <div class="game-status">
+                    <div class="game-status-item">날짜: <span id="day-value">1</span>일차 <span id="time-period">낮</span></div>
+                </div>
+                
+                <div class="progress-label">
+                    <span>트럭 내구도</span>
+                    <span id="truck-value">0%</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="truck-bar" style="width: 0%;"></div>
+                </div>
+                
+                <div class="progress-label">
+                    <span>캠프 방어도</span>
+                    <span id="defense-value">100%</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar defense" id="defense-bar" style="width: 100%;"></div>
+                </div>
+                
+                <div class="end-turn-container">
+                    <button id="end-turn-button" class="end-turn-button">턴 종료</button>
+                </div>
+            </div>
+            
+            <div class="message-log" id="message-log">
+                <div class="message">트럭을 타고 폐허 서울을 신나게 누비던 반지하 패거리! 그러나 갑자기 트럭이 고장나며 외딴 곳에 멈추고 말았습니다. 위험한 세력이 덮치기 전에 트럭을 수리하고 떠나야 합니다.</div>
+            </div>
+        </div>
+        
+        <div class="characters-container" id="characters-container">
+            <!-- 캐릭터 카드들이 JavaScript로 동적 생성됩니다 -->
+        </div>
     </div>
-    <div class="game-area">
-        <div class="info-buttons">
-            <button class="info-button" id="tutorialButton">?</button>
-            <button class="info-button" id="rankingButton">🏆</button>
-        </div>
-        <div class="buildings">
-            <div class="building" id="building1">
-                <div class="building-cells"></div>
-                <div class="building-score" id="score1">0점</div>
-            </div>
-            <div class="building" id="building2">
-                <div class="building-cells"></div>
-                <div class="building-score" id="score2">0점</div>
-            </div>
-            <div class="building" id="building3">
-                <div class="building-cells"></div>
-                <div class="building-score" id="score3">0점</div>
-            </div>
-        </div>
-        <div class="control-area">
-            <div class="card-display" id="currentCard">-</div>
-            <div class="instruction" id="instructionLabel">세입자 넣을 층 누르기</div>
-            <div class="buttons">
-                <button id="drawButton" class="game-button">세입자 뽑기</button>
-                <button id="rerollButton" class="game-button">다시 뽑기</button>
-            </div>
-            <div class="warning" id="warningMessage">
-                이 세입자를 넣을 층이 없습니다! 
-                <span id="rerollCount">남은 기회: 2번</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="tutorialModal">
+    
+    <div id="game-over-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <button class="close-button" onclick="closeModal('tutorialModal')">×</button>
-            <h2>게임 방법</h2>
-            <ul>
-                <li>'세입자 뽑기' 버튼을 누르세요.</li>
-                <li>1~20 사이로 랜덤하게 뽑힌 세입자를 빌딩의 아무 빈 층에나 입주시킬 수 있습니다.</li>
-                <li>단, 항상 아래층보다 큰 숫자의 세입자만 입주시킬 수 있습니다.</li>
-                <li>×2 표시가 있는 층은 점수가 2배가 됩니다.</li>
-                <li>1층부터 연속된 층의 점수를 모두 더한 것이 각 건물의 점수입니다.</li>
-                <li>세입자를 넣을 층이 없으면 최대 2번까지 다시 뽑을 수 있습니다.</li>
-                <li>더 이상 다시 뽑을 수 없을 때 게임이 종료되고 세 건물의 점수의 합이 총점입니다.</li>
-            </ul>
+            <h2 class="modal-title" id="modal-title">게임 종료</h2>
+            <p id="modal-message">모든 생존자가 죽었습니다.</p>
+            <button class="modal-button" onclick="restartGame()">다시 시작</button>
         </div>
     </div>
-
-    <div class="modal" id="rankingModal">
+    
+    <div id="night-events-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <button class="close-button" onclick="closeModal('rankingModal')">×</button>
-            <h2>랭킹</h2>
-            <ul class="ranking-list" id="rankingList">
-                <li class="ranking-item">
-                    <span>고사리</span>
-                    <span>373점</span>
-                </li>
-                <li class="ranking-item">
-                    <span>crossbow</span>
-                    <span>372점</span>
-                </li>
-                <li class="ranking-item">
-                    <span>딸기맛딸기</span>
-                    <span>343점</span>
-                </li>
-                <li class="ranking-item">
-                    <span>초보 생존자</span>
-                    <span>301점</span>
-                </li>
-                <li class="ranking-item">
-                    <span>ㅇㅅㅇ</span>
-                    <span>270점</span>
-                </li>
-                <li class="ranking-item">
-                    <span>이유원</span>
-                    <span>324점</span>
-                </li>
-                <li class="ranking-item">
-                    <span>차필근</span>
-                    <span>210점</span>
-                </li>
-                <li class="ranking-item">
-                    <span>정윤지</span>
-                    <span>151점</span>
-                </li>
-                <li class="ranking-item">
-                    <span>오성국</span>
-                    <span>119점</span>
-                </li>
-                <li class="ranking-item">
-                    <span>류박태오</span>
-                    <span>92점</span>
-                </li>
-                <li class="ranking-item">
-                    <span>김민지</span>
-                    <span>61점</span>
-                </li>
-            </ul>
-            <div class="ranking-empty" id="rankingEmpty" style="display: none;">
-                플레이하고 랭킹을 등록하세요!
-            </div>
+            <h2 class="modal-title">밤 이벤트</h2>
+            <p id="night-event-message"></p>
+            <button class="modal-button" id="continue-night-button">계속</button>
         </div>
     </div>
-
-    <div class="modal" id="gameOverModal">
-        <div class="modal-content game-over-content">
-            <h2>게임 종료!</h2>
-            <div class="game-over-score" id="finalScore">총점: 0점</div>
-            <button class="restart-button" onclick="restartGame()">다시하기</button>
-        </div>
-    </div>
-
+    
     <script>
-        let currentCard = null;
-        let consecutiveRerolls = 0;
-        const BUILDING_HEIGHT = 10;
-        let gameOver = false;
-        let rerollsLeft = 2;
-        let highScore = localStorage.getItem('highScore') || 0;
+        // 게임 상태
+        const gameState = {
+            day: 1,
+            isNight: false,
+            truckDurability: 0,
+            defenseFortification: 5, // 기본 방어도 증가량
+            defense: 100,
+            resources: {
+                meat: 3,
+                vegetables: 3,
+                parts: 0,
+                alcohol: 0
+            },
+            characters: [
+                {
+                    id: 'yoonji',
+                    name: '정윤지',
+                    trait: '고기는 못 먹고 야채만 먹을 수 있다',
+                    action: null,
+                    injured: false,
+                    depressed: false,
+                    dead: false,
+                    happy: false
+                },
+                {
+                    id: 'seohyun',
+                    name: '신서현',
+                    trait: '수리 효과가 2배가 된다',
+                    action: null,
+                    injured: false,
+                    depressed: false,
+                    dead: false,
+                    happy: false
+                },
+                {
+                    id: 'pilgeun',
+                    name: '차필근',
+                    trait: '파티 준비를 할 수 있다',
+                    action: null,
+                    injured: false,
+                    depressed: false,
+                    dead: false,
+                    preparingParty: false,
+                    happy: false
+                },
+                {
+                    id: 'sungkook',
+                    name: '오성국',
+                    trait: '하루에 식량 2개를 소비한다',
+                    action: null,
+                    injured: false,
+                    depressed: false,
+                    dead: false,
+                    happy: false
+                }
+            ],
+            nightMessages: [],
+            currentMessageIndex: 0
+        };
 
-        function updateHighScore(score) {
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('highScore', highScore);
+        // 행동 정의
+        const actions = {
+            repair: {
+                name: '트럭 수리',
+                description: '트럭 내구도를 증가시킨다. 🔧부품을 쓸 수 있다.',
+                isAvailable: (character) => !character.dead,
+                execute: (character) => {
+                    let prefix = '';
+                    let bonus = 0;
+                    if (character.happy) {
+                        prefix = '(싱글벙글) ';
+                        bonus = 1;
+                    }
+                    let repairAmount = 1 + bonus;
+                    // 부품당 추가 수리
+                  
+                    // 서현은 수리 효과 2배 (기본 수리량과 부품 효과 모두 포함)
+                    if (character.id === 'seohyun') {
+                        repairAmount *= 2;
+                    }  
+                    let partMessage = '';
+                    if (gameState.resources.parts > 0) {
+                        repairAmount += gameState.resources.parts;
+                        gameState.resources.parts -= 1;
+                        partMessage = '부품으로 ';
+                    }
+                    gameState.truckDurability += repairAmount;
+                    return `${prefix}${partMessage}트럭을 수리해서 내구도를 ${repairAmount}% 증가시켰어.`;
+                }
+            },
+            forest: {
+                name: '숲 보내기',
+                description: '숲에서 식량을 찾아본다.',
+                isAvailable: (character) => !character.dead && !character.injured,
+                execute: (character) => {
+                    let prefix = '';
+                    if (character.happy) prefix = '(싱글벙글) ';
+                    // 윤지는 야채만 0-5개 가져옴
+                    if (character.id === 'yoonji') {
+                        let min = character.happy ? 1 : 0;
+                        const vegetablesFound = Math.floor(Math.random() * (6 - min)) + min; // min~5
+                        gameState.resources.vegetables += vegetablesFound;
+                        return `${prefix}숲에 가서 야채 ${vegetablesFound}개를 가져왔어.`;
+                    } else {
+                        let min = character.happy ? 1 : 0;
+                        const meatFound = Math.floor(Math.random() * (3 - min)) + min; // min~2
+                        const vegetablesFound = Math.floor(Math.random() * (3 - min)) + min; // min~2
+                        gameState.resources.meat += meatFound;
+                        gameState.resources.vegetables += vegetablesFound;
+                        return `${prefix}숲에 가서 고기 ${meatFound}개, 야채 ${vegetablesFound}개를 가져왔어.`;
+                    }
+                }
+            },
+            ruins: {
+                name: '폐허 보내기',
+                description: '페허에서 쓸만한 걸 찾아본다.',
+                isAvailable: (character) => !character.dead && !character.injured,
+                execute: (character) => {
+                    let prefix = '';
+                    if (character.happy) prefix = '(싱글벙글) ';
+                    let min = character.happy ? 1 : 0;
+                    const partsFound = Math.floor(Math.random() * (2 - min)) + min; // min~1
+                    const alcoholFound = Math.floor(Math.random() * (2 - min)) + min; // min~1
+                    gameState.resources.parts += partsFound;
+                    gameState.resources.alcohol += alcoholFound;
+                    let message = `${prefix}폐허에 가서 부품 ${partsFound}개, 술 ${alcoholFound}개를 가져왔어.`;
+                    // 50% 확률로 부상
+                    if (Math.random() < 0.5) {
+                        character.injured = true;
+                        message += " 하지만 부상을 입었어.";
+                    }
+                    return message;
+                }
+            },
+            blackmarket: {
+                name: '암시장 보내기',
+                description: '🍺술 1개를 소모해 🥩고기를 구한다.',
+                isAvailable: (character) => !character.dead && !character.injured && gameState.resources.alcohol > 0,
+                execute: (character) => {
+                    let prefix = '';
+                    if (character.happy) prefix = '(싱글벙글) ';
+                    gameState.resources.alcohol -= 1;
+                    let min = character.happy ? 3 : 2;
+                    const meatFound = Math.floor(Math.random() * (6 - min + 1)) + min; // min~6
+                    gameState.resources.meat += meatFound;
+                    let message = `${prefix}암시장에 가서 술 1개를 고기 ${meatFound}개로 바꿔왔어.`;
+                    // 50% 확률로 사기꾼을 만나 부상
+                    if (Math.random() < 0.5) {
+                        character.injured = true;
+                        message += " 근데 거래 끝나고 뒤에서 총을 쏘더라고.";
+                    }
+                    return message;
+                }
+            },
+            nurse: {
+                name: '간호',
+                description: '캠프에 있는 다른 모든 부상자의 부상을 회복시킨다.',
+                isAvailable: (character) => {
+                    // 캐릭터가 간호할 수 있는 상태인지 확인
+                    if (character.dead || character.injured || character.depressed) return false;
+                    
+                    // 간호할 부상자가 있는지 확인
+                    let hasInjured = false;
+                    gameState.characters.forEach(c => {
+                        if (c.id !== character.id && c.injured && !c.dead) {
+                            hasInjured = true;
+                        }
+                    });
+                    return hasInjured;
+                },
+                execute: (character) => {
+                    let healedCharacters = [];
+                    
+                    gameState.characters.forEach(c => {
+                        if (c.id !== character.id && c.injured && !c.dead) {
+                            c.injured = false;
+                            healedCharacters.push(c.name);
+                        }
+                    });
+                    
+                    return `부상당한 ${healedCharacters.join(', ')}를 간호했어.`;
+                }
+            },
+            rest: {
+                name: '휴식',
+                description: '자신의 우울을 치료한다.',
+                isAvailable: (character) => !character.dead && character.depressed,
+                execute: (character) => {
+                    setDepressed(character, false);
+                    return "휴식을 취해서 마음이 편안해졌어.";
+                }
+            },
+            guard: {
+                name: '경계',
+                description: '캠프의 방어도를 올린다.',
+                isAvailable: (character) => !character.dead && !character.injured && gameState.defense < 100,
+                execute: (character) => {
+                    let prefix = '';
+                    let bonus = 0;
+                    if (character.happy) {
+                        prefix = '(싱글벙글) ';
+                        bonus = 1;
+                    }
+                    gameState.defense += gameState.defenseFortification + bonus;
+                    if (gameState.defense > 100) gameState.defense = 100;
+                    return `${prefix}경계를 서서 캠프의 방어도를 ${gameState.defenseFortification + bonus}% 올렸어.`;
+                }
+            },
+            party: {
+                name: '파티 준비',
+                description: '🍺술 1개를 소모해 밤에 있을 파티를 준비한다.',
+                isAvailable: (character) => character.id === 'pilgeun' && !character.dead && gameState.resources.alcohol > 0,
+                execute: (character) => {
+                    // 술 소모는 선택 시 처리
+                    character.preparingParty = true;
+                    return "오늘 밤 파티를 준비했어!";
+                }
+            },
+            build: {
+                name: '건설',
+                description: '🔧부품 1개를 소모해 방어시설을 건설한다.',
+                isAvailable: (character) => !character.dead && gameState.resources.parts > 0,
+                execute: (character) => {
+                    // 부품 소모는 선택 시 처리
+                    gameState.defenseFortification += 2;
+                    return `건설을 해서 앞으로 경계를 서면 방어도가 ${gameState.defenseFortification}% 올라가게 됐어.`;
+                }
+            }
+        };
+
+        // DOM 요소 초기화
+        function initializeDOM() {
+            // 캐릭터 카드 생성
+            const charactersContainer = document.getElementById('characters-container');
+            charactersContainer.innerHTML = '';
+            
+            gameState.characters.forEach(character => {
+                const card = createCharacterCard(character);
+                charactersContainer.appendChild(card);
+            });
+            
+            // 턴 종료 버튼 이벤트
+            document.getElementById('end-turn-button').addEventListener('click', endTurn);
+            
+            // 계속 버튼 이벤트
+            document.getElementById('continue-night-button').addEventListener('click', continueNightEvents);
+            
+            // 자원 패널 업데이트
+            updateResourcePanel();
+            
+            // 트럭 및 방어도 업데이트
+            updateGameStatus();
+        }
+
+        // 캐릭터 카드 생성
+        function createCharacterCard(character) {
+            const card = document.createElement('div');
+            card.className = `character-card ${character.dead ? 'dead' : ''}`;
+            card.id = `character-${character.id}`;
+            
+            card.innerHTML = `
+                <div class="character-name">
+                    <span>${character.name}</span>
+                    ${character.action ? `<span class="selected-action">(${actions[character.action].name})</span>` : ''}
+                </div>
+                <div class="character-trait">${character.trait}</div>
+                <div class="status-labels" id="status-${character.id}">
+                    ${character.injured ? '<span class="status-label injured">부상</span>' : ''}
+                    ${character.depressed ? '<span class="status-label depressed">우울</span>' : ''}
+                    ${character.happy ? '<span class="status-label" style="background-color:var(--success-color);color:black;">행복</span>' : ''}
+                    ${character.dead ? '<span class="status-label dead">사망</span>' : ''}
+                </div>
+                <div class="actions-container" id="actions-${character.id}">
+                    <!-- 행동 버튼들이 JavaScript로 동적 생성됩니다 -->
+                </div>
+            `;
+            
+            // 캐릭터가 죽었으면 행동 비활성화
+            if (!character.dead) {
+                const actionsContainer = card.querySelector(`#actions-${character.id}`);
+                
+                // 가능한 행동들 표시
+                Object.keys(actions).forEach(actionKey => {
+                    const action = actions[actionKey];
+                    
+                    // 해당 캐릭터가 할 수 있는 행동인지 확인
+                    if (action.isAvailable(character)) {
+                        const button = document.createElement('button');
+                        button.className = 'action-button';
+                        button.textContent = action.name;
+                        button.disabled = character.action !== null;
+                        
+                        // 툴크 추가
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'action-tooltip';
+                        tooltip.textContent = action.description;
+                        button.appendChild(tooltip);
+                        
+                        // 클릭 이벤트
+                        button.addEventListener('click', () => {
+                            selectAction(character, actionKey);
+                        });
+                        
+                        actionsContainer.appendChild(button);
+                    }
+                });
+            }
+            
+            return card;
+        }
+
+        // 행동 선택
+        function selectAction(character, actionKey) {
+            character.action = actionKey;
+            // 파티 준비나 건설처럼 자원을 소모하는 행동은 선택 즉시 자원 차감
+            if (actionKey === 'party') {
+                if (gameState.resources.alcohol > 0) {
+                    gameState.resources.alcohol -= 1;
+                }
+            }
+            if (actionKey === 'build') {
+                if (gameState.resources.parts > 0) {
+                    gameState.resources.parts -= 1;
+                }
+            }
+            // 버튼 비활성화
+            const actionsContainer = document.querySelector(`#actions-${character.id}`);
+            const buttons = actionsContainer.querySelectorAll('.action-button');
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+            // 턴 종료 버튼 활성화 여부 체크
+            checkEndTurnButton();
+            // 자원 패널 즉시 갱신
+            updateResourcePanel();
+        }
+
+        // 턴 종료 버튼 활성화 여부 체크
+        function checkEndTurnButton() {
+            const endTurnButton = document.getElementById('end-turn-button');
+            
+            // 살아있는 모든 캐릭터가 행동을 선택했는지 확인
+            const allSelected = gameState.characters.every(character => 
+                character.dead || character.action !== null
+            );
+            
+            endTurnButton.disabled = !allSelected;
+        }
+
+        // 턴 종료
+        function endTurn() {
+            gameState.isNight = true;
+            document.getElementById('time-period').textContent = '밤';
+            
+            // 밤 이벤트 메시지 초기화
+            gameState.nightMessages = [];
+            gameState.currentMessageIndex = 0;
+            
+            // 각 캐릭터의 행동 결과 처리
+            gameState.characters.forEach(character => {
+                if (!character.dead && character.action !== null) {
+                    const action = actions[character.action];
+                    const result = action.execute(character);
+                    gameState.nightMessages.push(`${character.name}: ${result}`);
+                }
+                
+                // 행동 초기화
+                character.action = null;
+            });
+            
+            // 식량 소비
+            consumeFood();
+            
+            // 방어도 하락
+            gameState.defense -= (gameState.day >= 14 ? 10 : 5);
+            if (gameState.defense < 0) gameState.defense = 0;
+            
+            // 밤 이벤트 체크
+            checkNightEvents();
+            
+            // 다음 턴 준비
+            updateResourcePanel();
+            updateGameStatus();
+            
+            // 메시지 로그에 날짜 추가
+            addToMessageLog(`===== ${gameState.day}일차 밤 =====`);
+            
+            // 밤 이벤트 모달 시작
+            startNightEvents();
+        }
+
+        // 식량 소비
+        function consumeFood() {
+            // 캐릭터 순서: 정윤지 - 신서현 - 차필근 - 오성국
+            const order = ['yoonji', 'seohyun', 'pilgeun', 'sungkook'];
+            
+            for (const id of order) {
+                const character = gameState.characters.find(c => c.id === id);
+                
+                if (!character.dead) {
+                    // 오성국은 식량 2개 소비
+                    const neededFood = character.id === 'sungkook' ? 2 : 1;
+                    
+                    if (character.id === 'yoonji') {
+                        // 윤지는 야채만 먹음
+                        if (gameState.resources.vegetables >= neededFood) {
+                            gameState.resources.vegetables -= neededFood;
+                        } else {
+                            // 식량 부족
+                            gameState.nightMessages.push(`${character.name}: 야채 아니면 안 먹을래...`);
+                            makeDepressed(character);
+                        }
+                    } else {
+                        // 다른 캐릭터들은 고기 우선, 부족하면 야채
+                        if (gameState.resources.meat >= neededFood) {
+                            gameState.resources.meat -= neededFood;
+                        } else if (gameState.resources.vegetables >= neededFood) {
+                            gameState.resources.vegetables -= neededFood;
+                        } else if (gameState.resources.meat + gameState.resources.vegetables >= neededFood) {
+                            // 혼합 식량
+                            const usedMeat = Math.min(gameState.resources.meat, neededFood);
+                            gameState.resources.meat -= usedMeat;
+                            gameState.resources.vegetables -= (neededFood - usedMeat);
+                        } else {
+                            // 식량 부족
+                            gameState.nightMessages.push(`${character.name}: 식량이 부족해서 굶었어...`);
+                            makeDepressed(character);
+                        }
+                    }
+                }
             }
         }
 
-        function initializeBuildings() {
-            const buildings = document.querySelectorAll('.building');
-            buildings.forEach((building, buildingIndex) => {
-                const buildingCells = building.querySelector('.building-cells');
-                
-                for (let i = 0; i < BUILDING_HEIGHT; i++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    
-                    if ((buildingIndex === 0 && i === 1) || 
-                        (buildingIndex === 1 && i === 4) || 
-                        (buildingIndex === 2 && i === 7)) {
-                        cell.classList.add('x2');
-                    }
-                    
-                    cell.addEventListener('click', () => handleCellClick(cell));
-                    buildingCells.appendChild(cell);
-                }
-            });
-            updateInvalidCells();
+        // 캐릭터 상태 변경 함수들
+        function setDepressed(character, value) {
+            if (value === true) {
+                // 우울해질 때 행복 상태를 먼저 제거
+                character.happy = false;
+            }
+            character.depressed = value;
+        }
+        
+        function setHappy(character, value) {
+            if (value === true) {
+                // 행복해질 때 우울 상태를 먼저 제거
+                character.depressed = false;
+            }
+            character.happy = value;
+        }
+        
+        function setInjured(character, value) {
+            character.injured = value;
         }
 
-        function updateInvalidCells() {
-            if (!currentCard) {
-                document.querySelectorAll('.cell').forEach(cell => {
-                    cell.classList.remove('invalid');
-                });
+        // 캐릭터 우울하게 만듦
+        function makeDepressed(character) {
+            if (character.happy) {
+                setHappy(character, false);
+                gameState.nightMessages.push(`${character.name}: ${character.name} 이제 안 행복해...`);
                 return;
             }
-
-            document.querySelectorAll('.cell:not(.filled)').forEach(cell => {
-                if (!isMoveValid(cell, currentCard)) {
-                    cell.classList.add('invalid');
+            if (Math.random() < 0.5) {
+                if (!character.depressed) {
+                    setDepressed(character, true);
+                    gameState.nightMessages.push(`${character.name}: 우울해졌어...`);
                 } else {
-                    cell.classList.remove('invalid');
-                }
-            });
-        }
-
-        function canPlaceAnywhere(value) {
-            const allCells = document.querySelectorAll('.cell');
-            for (const cell of allCells) {
-                if (!cell.classList.contains('filled') && isMoveValid(cell, value)) {
-                    return true;
+                    character.dead = true;
+                    gameState.nightMessages.push(`${character.name}: 미안, 친구들. 나 같은 쓰레기가 살아서 뭐하겠어. 잘 있어.`);
+                    handleCharacterDeath();
                 }
             }
-            return false;
         }
 
-        function drawCard() {
-            if (gameOver) return;
-            
-            const warningMessage = document.getElementById('warningMessage');
-            const rerollButton = document.getElementById('rerollButton');
-            const drawButton = document.getElementById('drawButton');
-            const instructionLabel = document.getElementById('instructionLabel');
-            const currentCardDisplay = document.getElementById('currentCard');
-            
-            warningMessage.style.display = 'none';
-            rerollButton.style.display = 'none';
-            drawButton.style.display = 'none';
-            instructionLabel.style.display = 'none';
-            currentCardDisplay.classList.remove('invalid');
-            
-            currentCard = Math.floor(Math.random() * 20) + 1;
-            currentCardDisplay.textContent = currentCard;
-            document.getElementById('drawButton').disabled = true;
-
-            updateInvalidCells();
-
-            if (!canPlaceAnywhere(currentCard)) {
-                if (consecutiveRerolls < 2) {
-                    warningMessage.style.display = 'block';
-                    rerollButton.style.display = 'inline-block';
-                    document.getElementById('rerollCount').textContent = `남은 기회: ${2 - consecutiveRerolls}번`;
-                    currentCardDisplay.classList.add('invalid');
-                } else {
-                    endGame();
-                }
+        // 캐릭터 부상 입힘
+        function makeInjured(character) {
+            if (character.happy) {
+                setHappy(character, false);
+                gameState.nightMessages.push(`${character.name}: 행복이 사라졌어...`);
+            }
+            if (!character.injured) {
+                setInjured(character, true);
+                gameState.nightMessages.push(`${character.name}: 부상을 입었어...`);
             } else {
-                instructionLabel.style.display = 'block';
+                character.dead = true;
+                gameState.nightMessages.push(`${character.name}: 커헉! (피 토하는 소리)`);
+                handleCharacterDeath();
             }
         }
 
-        function reroll() {
-            consecutiveRerolls++;
-            drawCard();
-        }
-
-        function isMoveValid(cell, value) {
-            const building = cell.parentElement;
-            const cells = Array.from(building.children);
-            const cellIndex = cells.indexOf(cell);
-
-            for (let i = 0; i < cellIndex; i++) {
-                if (cells[i].classList.contains('filled')) {
-                    if (value <= parseInt(cells[i].textContent)) {
-                        return false;
+        // 캐릭터 사망 처리
+        function handleCharacterDeath() {
+            // 다른 캐릭터들 50% 확률로 우울
+            gameState.characters.forEach(character => {
+                if (!character.dead && Math.random() < 0.5) {
+                    if (!character.depressed) {
+                        setDepressed(character, true);
+                        // 가장 최근에 죽은 캐릭터 찾기
+                        const recentlyDeadCharacters = gameState.characters.filter(c => c.dead && !c.wasProcessed);
+                        if (recentlyDeadCharacters.length > 0) {
+                            // 가장 최근에 죽은 캐릭터 선택
+                            const deadCharacter = recentlyDeadCharacters[recentlyDeadCharacters.length - 1];
+                            deadCharacter.wasProcessed = true; // 이미 언급된 캐릭터 표시
+                            gameState.nightMessages.push(`${character.name}: ${deadCharacter.name}이가 죽다니...`);
+                        } else {
+                            // 죽은 캐릭터를 특정할 수 없는 경우 기본 메시지
+                            gameState.nightMessages.push(`${character.name}: 너무 슬퍼...`);
+                        }
                     }
                 }
-            }
-
-            for (let i = cellIndex + 1; i < cells.length; i++) {
-                if (cells[i].classList.contains('filled')) {
-                    if (value >= parseInt(cells[i].textContent)) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        function createParticles(x, y) {
-            const colors = ['#FF5722', '#FF9800', '#FFC107', '#FFEB3B', '#FF4081'];
-            const particleCount = 12;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                const size = Math.random() * 8 + 4;
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                particle.style.left = x + 'px';
-                particle.style.top = y + 'px';
-                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                
-                const angle = Math.random() * Math.PI * 2;
-                const velocity = Math.random() * 50 + 30;
-                const vx = Math.cos(angle) * velocity;
-                const vy = Math.sin(angle) * velocity;
-                
-                particle.style.transform = `translate(${vx}px, ${vy}px)`;
-                document.body.appendChild(particle);
-                
-                setTimeout(() => {
-                    particle.remove();
-                }, 800);
-            }
-        }
-
-        function handleCellClick(cell) {
-            if (gameOver || !currentCard || cell.classList.contains('filled') || cell.classList.contains('invalid')) return;
-
-            if (!isMoveValid(cell, currentCard)) return;
-
-            cell.textContent = currentCard;
-            cell.classList.add('filled');
-            currentCard = null;
-            document.getElementById('currentCard').textContent = '-';
-            document.getElementById('drawButton').disabled = false;
-            document.getElementById('drawButton').style.display = 'inline-block';
-            document.getElementById('instructionLabel').style.display = 'none';
-            consecutiveRerolls = 0;
-
-            updateAllBuildingScores();
-            updateInvalidCells();
-        }
-
-        function calculateBuildingScore(building) {
-            const cells = Array.from(building.querySelectorAll('.cell'));
-            let score = 0;
-            let isConnectedToGround = true;
-
-            for (let i = 0; i < cells.length; i++) {
-                if (!cells[i].classList.contains('filled')) {
-                    isConnectedToGround = false;
-                    break;
-                }
-                
-                if (isConnectedToGround) {
-                    let value = parseInt(cells[i].textContent);
-                    if (cells[i].classList.contains('x2')) {
-                        value *= 2;
-                    }
-                    score += value;
-                }
-            }
-
-            return score;
-        }
-
-        function updateAllBuildingScores() {
-            const buildings = document.querySelectorAll('.building');
-            let totalScore = 0;
-            
-            buildings.forEach((building, index) => {
-                const score = calculateBuildingScore(building);
-                const scoreElement = building.querySelector('.building-score');
-                if (scoreElement) {
-                    scoreElement.textContent = `${score}점`;
-                }
-                totalScore += score;
             });
-
-            return totalScore;
-        }
-
-        function endGame() {
-            gameOver = true;
-            const score = updateAllBuildingScores();
-            document.getElementById('drawButton').disabled = true;
-            document.getElementById('rerollButton').style.display = 'none';
-            document.getElementById('warningMessage').style.display = 'none';
-            document.getElementById('finalScore').textContent = `총점: ${score}점`;
-            updateHighScore(score);
-            showModal('gameOverModal');
-            updateRanking(score);
-        }
-
-        function showModal(modalId) {
-            document.getElementById(modalId).style.display = 'block';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        function updateRanking(score) {
-            const rankingList = document.getElementById('rankingList');
-            const rankingEmpty = document.getElementById('rankingEmpty');
             
-            // 기존 '나' 항목 제거
-            const existingMe = rankingList.querySelector('.me');
-            if (existingMe) {
-                existingMe.remove();
-            }
+            // 게임 오버 체크
+            checkGameOver();
+        }
 
-            // 모든 랭킹 항목을 배열로 변환
-            const allRankings = Array.from(rankingList.children).map(item => {
-                const name = item.querySelector('span:first-child').textContent;
-                const score = parseInt(item.querySelector('span:last-child').textContent);
-                return { name, score, element: item };
-            });
-
-            // '나' 항목 추가
-            allRankings.push({ name: '나', score, element: null });
-
-            // 점수 순으로 정렬
-            allRankings.sort((a, b) => b.score - a.score);
-
-            // 랭킹 목록 초기화
-            rankingList.innerHTML = '';
-
-            // 정렬된 순서대로 다시 추가
-            allRankings.forEach((item, index) => {
-                const rank = index + 1;
-                const li = document.createElement('li');
-                li.className = item.name === '나' ? 'ranking-item me' : 'ranking-item';
+        // 밤 이벤트 체크
+        function checkNightEvents() {
+            // 습격 체크 (방어도의 확률로 습격 없음)
+            if (Math.random() > gameState.defense / 100) {
+                // 습격 발생
+                gameState.nightMessages.push("갱단이 습격해왔다!");
                 
-                if (item.name === '나') {
-                    li.innerHTML = `<span>${rank}위 나</span><span>${item.score}점</span>`;
+                // 성국이 살아있고 부상이 아니라면 25% 확률로 격퇴
+                const sungkook = gameState.characters.find(c => c.id === 'sungkook');
+                if (sungkook && !sungkook.dead && !sungkook.injured && Math.random() < 0.25) {
+                    gameState.nightMessages.push("오성국: 걱정 마! 내가 격퇴했어!");
+                    // 격퇴 성공 시 부상자 없음
                 } else {
-                    li.innerHTML = `<span>${item.name}</span><span>${item.score}점</span>`;
+                    // 파티가 준비되어 있었다면 취소
+                    const pilgeun = gameState.characters.find(c => c.id === 'pilgeun');
+                    if (pilgeun?.preparingParty) {
+                        gameState.nightMessages.push("파티는 취소됐다!");
+                        pilgeun.preparingParty = false;
+                    }
+                    
+                    // 살아있는 사람 중 한 명 부상
+                    const livingCharacters = gameState.characters.filter(c => !c.dead);
+                    if (livingCharacters.length > 0) {
+                        const victimIndex = Math.floor(Math.random() * livingCharacters.length);
+                        const victim = livingCharacters[victimIndex];
+                        makeInjured(victim);
+                    }
+                       // 방어도가 낮을수록 트럭 공격 확률 증가 (방어도 30% 이하면 70% 확률로 트럭 공격)
+                       if (Math.random() > gameState.defense / 100) {
+                        const damage = Math.floor(Math.random() * 10) + 1; // 1-10 데미지
+                        gameState.truckDurability -= damage;
+                        
+                        // 랜덤 생존자가 트럭 공격 상황 보고
+                        const livingChars = gameState.characters.filter(c => !c.dead);
+                        if (livingChars.length > 0) {
+                            const reporter = livingChars[Math.floor(Math.random() * livingChars.length)];
+                            gameState.nightMessages.push(`${reporter.name}: 놈들이 트럭까지 공격했어!`);
+                        }
+                    }
                 }
+            } else if (gameState.characters.find(c => c.id === 'pilgeun')?.preparingParty) {
+                // 파티 준비했고 습격이 없었음
+                gameState.nightMessages.push("차필근이 준비했다는 파티가 시작됐다!");
                 
-                rankingList.appendChild(li);
-            });
-
-            // '나' 항목이 없으면 플레이 유도 메시지 표시
-            if (!allRankings.some(item => item.name === '나')) {
-                rankingEmpty.style.display = 'block';
-            } else {
-                rankingEmpty.style.display = 'none';
-            }
-        }
-
-        function restartGame() {
-            gameOver = false;
-            consecutiveRerolls = 0;
-            currentCard = null;
-            document.getElementById('currentCard').textContent = '-';
-            document.getElementById('currentCard').classList.remove('invalid');
-            document.getElementById('drawButton').disabled = false;
-            document.getElementById('drawButton').style.display = 'inline-block';
-            document.getElementById('rerollButton').style.display = 'none';
-            document.getElementById('warningMessage').style.display = 'none';
-            document.getElementById('instructionLabel').style.display = 'none';
-            
-            const buildings = document.querySelectorAll('.building');
-            buildings.forEach(building => {
-                const cells = building.querySelectorAll('.cell');
-                cells.forEach(cell => {
-                    cell.textContent = '';
-                    cell.classList.remove('filled');
+                // 랜덤하게 3개의 대사 중 하나 선택
+                const partyMessages = [
+                    "차필근: 다같이 우리 반지하의 미래를 스케치북에 그려볼까요?",
+                    "차필근: 제가 피아노를 연주해드릴게요! (딩딩딩)",
+                    "차필근: (열창하며) 압둘바~ 압둘바~ 압둘바~"
+                ];
+                const randomMessage = partyMessages[Math.floor(Math.random() * partyMessages.length)];
+                gameState.nightMessages.push(randomMessage);
+                
+                // 모든 캐릭터의 우울 회복
+                gameState.characters.forEach(character => {
+                    if (!character.dead && character.depressed) {
+                        setDepressed(character, false);
+                        gameState.nightMessages.push(`${character.name}: 우울함이 사라졌어!`);
+                    }
                 });
-            });
-
-            updateAllBuildingScores();
-            updateInvalidCells();
-            closeModal('gameOverModal');
+                // 파티 성공 시 랜덤 생존자 1명에게 행복 부여
+                const living = gameState.characters.filter(c => !c.dead);
+                if (living.length > 0) {
+                    const lucky = living[Math.floor(Math.random() * living.length)];
+                    setHappy(lucky, true);
+                    gameState.nightMessages.push(`${lucky.name}: ${lucky.name} 행복해! 뭐든지 해낼 수 있을 것만 같아!`);
+                }
+            }
+            
+            // 파티 준비 상태 초기화
+            const pilgeun = gameState.characters.find(c => c.id === 'pilgeun');
+            if (pilgeun) {
+                pilgeun.preparingParty = false;
+            }
         }
 
-        document.getElementById('drawButton').addEventListener('click', drawCard);
-        document.getElementById('rerollButton').addEventListener('click', reroll);
-        document.getElementById('tutorialButton').addEventListener('click', () => showModal('tutorialModal'));
-        document.getElementById('rankingButton').addEventListener('click', () => showModal('rankingModal'));
-        initializeBuildings();
+        // 밤 이벤트 시작
+        function startNightEvents() {
+            if (gameState.nightMessages.length > 0) {
+                const modal = document.getElementById('night-events-modal');
+                const message = document.getElementById('night-event-message');
+                message.textContent = gameState.nightMessages[gameState.currentMessageIndex];
+                modal.style.display = 'flex';
+            } else {
+                goToNextDay();
+            }
+        }
+
+        // 밤 이벤트 계속
+        function continueNightEvents() {
+            gameState.currentMessageIndex++;
+            
+            if (gameState.currentMessageIndex < gameState.nightMessages.length) {
+                const message = document.getElementById('night-event-message');
+                message.textContent = gameState.nightMessages[gameState.currentMessageIndex];
+            } else {
+                const modal = document.getElementById('night-events-modal');
+                modal.style.display = 'none';
+                goToNextDay();
+            }
+        }
+
+        // 다음 날로
+        function goToNextDay() {
+            gameState.day++;
+            gameState.isNight = false;
+            document.getElementById('time-period').textContent = '낮';
+            
+            // 메시지 로그에 날짜 추가
+            addToMessageLog(`===== ${gameState.day}일차 낮 =====`);
+            
+            // 식량 부족 체크
+            const totalMeat = gameState.resources.meat;
+            const totalVegetables = gameState.resources.vegetables;
+            
+            // 필요한 식량 계산 (기본적으로 생존자 1명당 1개씩)
+            let requiredFood = 0;
+            gameState.characters.forEach(character => {
+                if (!character.dead) {
+                    // 오성국은 식량을 2개 소비
+                    requiredFood += (character.id === 'sungkook') ? 2 : 1;
+                }
+            });
+            
+            // 식량 부족 경고
+            if (totalMeat + totalVegetables < requiredFood) {
+                // 살아있는 캐릭터 중 랜덤으로 한 명 선택
+                const livingCharacters = gameState.characters.filter(c => !c.dead);
+                if (livingCharacters.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * livingCharacters.length);
+                    const warningCharacter = livingCharacters[randomIndex];
+                    addToMessageLog(`${warningCharacter.name}: 식량이 부족해. 이러다 굶겠어.`);
+                }
+            }
+            
+            // 캐릭터 업데이트
+            gameState.characters.forEach(character => {
+                const card = document.getElementById(`character-${character.id}`);
+                if (character.dead) {
+                    card.classList.add('dead');
+                } else {
+                    // 상태 라벨 업데이트
+                    const statusContainer = document.getElementById(`status-${character.id}`);
+                    statusContainer.innerHTML = '';
+                    if (character.injured) {
+                        const label = document.createElement('span');
+                        label.className = 'status-label injured';
+                        label.textContent = '부상';
+                        statusContainer.appendChild(label);
+                    }
+                    if (character.depressed) {
+                        const label = document.createElement('span');
+                        label.className = 'status-label depressed';
+                        label.textContent = '우울';
+                        statusContainer.appendChild(label);
+                    }
+                    if (character.happy) {
+                        const label = document.createElement('span');
+                        label.className = 'status-label';
+                        label.style.backgroundColor = 'var(--success-color)';
+                        label.style.color = 'black';
+                        label.textContent = '행복';
+                        statusContainer.appendChild(label);
+                    }
+                }
+            });
+            
+            // 행동 버튼 초기화
+            initializeDOM();
+            
+            // 게임 클리어 체크
+            if (gameState.truckDurability >= 100) {
+                endGame(true);
+            }
+        }
+
+        // 게임 오버 체크
+        function checkGameOver() {
+            const allDead = gameState.characters.every(character => character.dead);
+            if (allDead) {
+                endGame(false);
+            }
+        }
+
+        // 게임 종료
+        function endGame(victory) {
+            const modal = document.getElementById('game-over-modal');
+            const title = document.getElementById('modal-title');
+            const message = document.getElementById('modal-message');
+            
+            if (victory) {
+                title.textContent = '탈출!';
+                
+                // 생존자 수 확인 및 랭크 부여
+                const survivors = gameState.characters.filter(character => !character.dead);
+                const survivorNames = survivors.map(character => character.name).join(', ');
+                let rank = '';
+                
+                if (survivors.length === 4) {
+                    rank = 'S';
+                } else if (survivors.length === 3) {
+                    rank = 'A';
+                } else if (survivors.length === 2) {
+                    rank = 'B';
+                } else if (survivors.length === 1) {
+                    rank = 'C';
+                }
+                
+                message.textContent = `${gameState.day}일 만에 위험 지역을 탈출했습니다. 
+생존자: ${survivorNames} (${rank}랭크)`;
+            } else {
+                title.textContent = '패배...';
+                message.textContent = '모든 생존자가 죽었습니다...';
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        // 게임 재시작
+        function restartGame() {
+            location.reload();
+        }
+
+        // 자원 패널 업데이트
+        function updateResourcePanel() {
+            document.getElementById('meat-value').textContent = gameState.resources.meat;
+            document.getElementById('vegetables-value').textContent = gameState.resources.vegetables;
+            document.getElementById('parts-value').textContent = gameState.resources.parts;
+            document.getElementById('alcohol-value').textContent = gameState.resources.alcohol;
+        }
+
+        // 게임 상태 업데이트
+        function updateGameStatus() {
+            document.getElementById('day-value').textContent = gameState.day;
+            document.getElementById('truck-value').textContent = `${gameState.truckDurability}%`;
+            document.getElementById('defense-value').textContent = `${gameState.defense}%`;
+            
+            document.getElementById('truck-bar').style.width = `${gameState.truckDurability}%`;
+            document.getElementById('defense-bar').style.width = `${gameState.defense}%`;
+        }
+
+        // 메시지 로그에 추가
+        function addToMessageLog(message) {
+            const messageLog = document.getElementById('message-log');
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message';
+            messageElement.textContent = message;
+            messageLog.appendChild(messageElement);
+            messageLog.scrollTop = messageLog.scrollHeight;
+        }
+
+        // 게임 초기화 및 시작
+        window.onload = function() {
+            initializeDOM();
+        };
     </script>
 </body>
 </html>
