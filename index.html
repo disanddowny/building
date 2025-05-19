@@ -573,7 +573,7 @@
                 id: 'yebbi',
                 name: '예삐',
                 trait: '사냥꾼',
-                description: '위험하지만 숲에서 추가로 고기 3개를 가져옵니다.',
+                description: '위험하지만 숲에서 추가로 고기 2개를 가져옵니다.',
                 points: 3
             },
             seohyun: {
@@ -665,7 +665,7 @@
                 id: 'geonhee',
                 name: '김건희',
                 trait: '고관절 환자',
-                description: '밤마다 50% 확률로 부상당합니다. 부품 2개로 [고관절 개조]를 해야합니다.',
+                description: '밤마다 50% 확률로 부상당합니다. 부품 3개로 [고관절 개조]를 해야합니다.',
                 points: -1
             },
             gunsoo: {
@@ -777,8 +777,8 @@
                                 return `${prefix}사냥감이 역으로 덤벼들었네... 부상을 입었다네...`;
                             }
                             
-                            gameState.resources.meat += 3;
-                            return `${prefix}사냥에 성공했네! 고기 ${meatFound + 3}개, 야채 ${vegetablesFound}개를 가져왔다네.`;
+                            gameState.resources.meat += 2;
+                            return `${prefix}사냥에 성공했네! 고기 ${meatFound + 2}개, 야채 ${vegetablesFound}개를 가져왔다네.`;
                         }
                         
                         return `${prefix}숲에 가서 고기 ${meatFound}개, 야채 ${vegetablesFound}개를 가져왔어.`;
@@ -798,6 +798,12 @@
                     gameState.resources.parts += partsFound;
                     gameState.resources.alcohol += alcoholFound;
                     let message = `${prefix}폐허에 가서 부품 ${partsFound}개, 술 ${alcoholFound}개를 가져왔어.`;
+                    
+                    // 김건희의 고관절 개조 후 특수 능력
+                    if (character.name === '김건희' && character.hasHipSurgery) {
+                        gameState.resources.parts += 1;
+                        message = `${prefix}폐허에 가서 부품 ${partsFound + 1}개, 술 ${alcoholFound}개를 가져왔어. 사이보그 고관절 덕분이야!`;
+                    }
                     
                     // 김철용의 특수 능력: 트럭 내구도 50% 이상이면 부상 방지
                     const chulyong = gameState.characters.find(c => c.name === '김철용');
@@ -1040,13 +1046,13 @@
             },
             hipSurgery: {
                 name: '고관절 개조',
-                description: '🔧부품 2개를 소모해 고관절을 개조한다.',
-                isAvailable: (character) => character.name === '김건희' && !character.dead && gameState.resources.parts >= 2 && !character.hasHipSurgery,
+                description: '🔧부품 3개를 소모해 고관절을 개조한다.',
+                isAvailable: (character) => character.name === '김건희' && !character.dead && gameState.resources.parts >= 3 && !character.hasHipSurgery,
                 execute: (character) => {
-                    gameState.resources.parts -= 2;
+                    gameState.resources.parts -= 3;
                     character.trait = '고관절 사이보그';
                     character.hasHipSurgery = true;
-                    return "고관절 개조가 완료됐어! 이제 헬스도 할 수 있어.";
+                    return "고관절 개조가 완료됐어! 이제 아프지 않아.";
                 }
             }
         };
@@ -1468,7 +1474,42 @@
                         gameState.nightMessages.push("예삐: 훌륭한 사냥개로군!");
                     }
                 } else {
-                    // 파티가 준비되어 있었다면 취소
+                    // 습격이 없었을 때 술 먹어치우기 이벤트 체크
+                    if (gameState.resources.alcohol > 0) {
+                        const depressedCharacters = gameState.characters.filter(c => !c.dead && c.depressed);
+                        if (depressedCharacters.length > 0) {
+                            const drinker = depressedCharacters[Math.floor(Math.random() * depressedCharacters.length)];
+                            gameState.resources.alcohol -= 1;
+                            gameState.nightMessages.push(`${drinker.name}: (술병을 들고) 우울한데 이거라도 먹자...`);
+                            
+                            // 15% 확률로 우울함이 낫음
+                            if (Math.random() < 0.15) {
+                                setDepressed(drinker, false);
+                                gameState.nightMessages.push(`${drinker.name}: 음... 기분이 좀 나아졌어.`);
+                            } else {
+                                gameState.nightMessages.push(`${drinker.name}: (벌컥벌컥) 흐음... 그래도 우울해...`);
+                            }
+                        }
+                    }
+                    
+                    // 우울한 캐릭터들 사이의 싸움 이벤트 체크
+                    const depressedCharacters = gameState.characters.filter(c => !c.dead && c.depressed && !c.injured);
+                    if (depressedCharacters.length >= 2) {
+                        // 랜덤하게 2명 선택
+                        const shuffled = [...depressedCharacters].sort(() => 0.5 - Math.random());
+                        const fighter1 = shuffled[0];
+                        const fighter2 = shuffled[1];
+                        
+                        gameState.nightMessages.push(`${fighter1.name}: 야, ${fighter2.name}. 너 왜 눈을 그렇게 떠?`);
+                        gameState.nightMessages.push(`${fighter2.name}: 뭐래? 맞을래?`);
+                        gameState.nightMessages.push(`${fighter1.name}와 ${fighter2.name}가 다퉜습니다. 둘 다 부상을 입었습니다.`);
+                        
+                        // 둘 다 부상 입음
+                        setInjured(fighter1, true);
+                        setInjured(fighter2, true);
+                    }
+                    
+                    // 파티 준비했고 습격이 없었음
                     const pilgeun = gameState.characters.find(c => c.name === '차필근');
                     if (pilgeun?.preparingParty) {
                         gameState.nightMessages.push("파티는 취소됐다!");
@@ -1489,13 +1530,48 @@
                         
                         // 랜덤 생존자가 트럭 공격 상황 보고
                         const livingChars = gameState.characters.filter(c => !c.dead);
-                        if (livingChars.length > 0) {
+                        if (livingChars.length > 0) {z
                             const reporter = livingChars[Math.floor(Math.random() * livingChars.length)];
                             gameState.nightMessages.push(`${reporter.name}: 놈들이 트럭까지 공격했어!`);
                         }
                     }
                 }
             } else {
+                // 습격이 없었을 때 술 먹어치우기 이벤트 체크
+                if (gameState.resources.alcohol > 0) {
+                    const depressedCharacters = gameState.characters.filter(c => !c.dead && c.depressed);
+                    if (depressedCharacters.length > 0) {
+                        const drinker = depressedCharacters[Math.floor(Math.random() * depressedCharacters.length)];
+                        gameState.resources.alcohol -= 1;
+                        gameState.nightMessages.push(`${drinker.name}: (술병을 들고) 이거라도 있지...`);
+                        
+                        // 15% 확률로 우울함이 낫음
+                        if (Math.random() < 0.15) {
+                            setDepressed(drinker, false);
+                            gameState.nightMessages.push(`${drinker.name}: 음... 술이 생각보다 맛있네. 기분이 좀 나아졌어.`);
+                        } else {
+                            gameState.nightMessages.push(`${drinker.name}: (술병을 비우고) 흐음... 그래도 우울해...`);
+                        }
+                    }
+                }
+                
+                // 우울한 캐릭터들 사이의 싸움 이벤트 체크
+                const depressedCharacters = gameState.characters.filter(c => !c.dead && c.depressed && !c.injured);
+                if (depressedCharacters.length >= 2) {
+                    // 랜덤하게 2명 선택
+                    const shuffled = [...depressedCharacters].sort(() => 0.5 - Math.random());
+                    const fighter1 = shuffled[0];
+                    const fighter2 = shuffled[1];
+                    
+                    gameState.nightMessages.push(`${fighter1.name}: 야, ${fighter2.name}. 너 왜 눈을 그렇게 떠?`);
+                    gameState.nightMessages.push(`${fighter2.name}: 뭐래? 맞을래?`);
+                    gameState.nightMessages.push(`${fighter1.name}와 ${fighter2.name}가 다퉜습니다. 부상을 입었습니다.`);
+                    
+                    // 둘 다 부상 입음
+                    setInjured(fighter1, true);
+                    setInjured(fighter2, true);
+                }
+                
                 // 파티 준비했고 습격이 없었음
                 const pilgeun = gameState.characters.find(c => c.name === '차필근');
                 if (pilgeun?.preparingParty) {
@@ -1651,17 +1727,38 @@
             // 메시지 로그에 날짜 추가
             addToMessageLog(`===== ${gameState.day}일차 낮 =====`);
             
-            // 15일 또는 30일 특별 이벤트 체크
-            if (gameState.day === 15 || gameState.day === 30) {
+            // 15일, 30일, 45일 특별 이벤트 체크
+            if (gameState.day === 15 || gameState.day === 30 || gameState.day === 45) {
                 const livingCharacters = gameState.characters.filter(c => !c.dead);
                 if (livingCharacters.length > 0) {
                     const randomCharacter = livingCharacters[Math.floor(Math.random() * livingCharacters.length)];
                     
-                    // 랜덤으로 이벤트 선택
-                    if (Math.random() < 0.5) {
-                        addToMessageLog(`${randomCharacter.name}: 숲의 자원이 고갈되고 있어!`);
-                    } else {
-                        addToMessageLog(`${randomCharacter.name}: 폐허가 붕괴하고 있어!`);
+                    // 아직 발생하지 않은 위기 중에서 랜덤 선택
+                    const availableCrises = [];
+                    if (!gameState.forestCrisis) availableCrises.push('forest');
+                    if (!gameState.ruinsCrisis) availableCrises.push('ruins');
+                    if (!gameState.gangCrisis) availableCrises.push('gang');
+                    
+                    if (availableCrises.length > 0) {
+                        const selectedCrisis = availableCrises[Math.floor(Math.random() * availableCrises.length)];
+                        
+                        switch(selectedCrisis) {
+                            case 'forest':
+                                addToMessageLog(`${randomCharacter.name}: 숲의 자원이 고갈되고 있어!`);
+                                gameState.forestCrisis = true;
+                                break;
+                            case 'ruins':
+                                addToMessageLog(`${randomCharacter.name}: 폐허가 붕괴하고 있어!`);
+                                gameState.ruinsCrisis = true;
+                                break;
+                            case 'gang':
+                                addToMessageLog(`${randomCharacter.name}: 갱단이 더 공격적으로 변하고 있어!`);
+                                gameState.defense -= 5;
+                                if (gameState.defense < 0) gameState.defense = 0;
+                                updateGameStatus();
+                                gameState.gangCrisis = true;
+                                break;
+                        }
                     }
                 }
             }
