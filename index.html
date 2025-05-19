@@ -573,7 +573,7 @@
                 id: 'yebbi',
                 name: '예삐',
                 trait: '사냥꾼',
-                description: '위험하지만 숲에서 추가로 고기 2개를 가져옵니다.',
+                description: '위험하지만 숲에서 추가로 고기 3개를 가져옵니다.',
                 points: 3
             },
             seohyun: {
@@ -581,7 +581,7 @@
                 name: '신서현',
                 trait: '수석 개발자',
                 description: '수리와 건설 효과가 2배가 됩니다.',
-                points: 2
+                points: 3
             },
             pilgeun: {
                 id: 'pilgeun',
@@ -589,14 +589,7 @@
                 trait: '파티 플래너',
                 description: '술을 소모해 [파티 준비] 행동을 할 수 있습니다.',
                 points: 2
-            },
-            chulyong: {
-                id: 'chulyong',
-                name: '김철용',
-                trait: '운전병',
-                description: '트럭 내구도가 50% 이상이면 아무도 폐허에서 부상당하지 않습니다.',
-                points: 2
-            },      
+            }, 
             minji: {
                 id: 'minji',
                 name: '김민지',
@@ -604,6 +597,13 @@
                 description: '폐허와 암시장에서 부상당하지 않습니다.',
                 points: 2
             },
+            chulyong: {
+                id: 'chulyong',
+                name: '김철용',
+                trait: '운전병',
+                description: '트럭 내구도가 50% 이상이면 아무도 폐허에서 부상당하지 않습니다.',
+                points: 1
+            },     
             yuwon: {
                 id: 'yuwon',
                 name: '이유원',
@@ -743,33 +743,6 @@
 
         // 행동 정의
         const actions = {
-            repair: {
-                name: '트럭 수리',
-                description: '트럭 내구도를 증가시킨다. 🔧부품을 쓸 수 있다.',
-                isAvailable: (character) => !character.dead,
-                execute: (character) => {
-                    let prefix = '';
-                    let bonus = 0;
-                    if (character.happy) {
-                        prefix = '(싱글벙글) ';
-                        bonus = 1;
-                    }
-                    let repairAmount = 1 + bonus;
-                    
-                    // 서현은 수리 효과 2배 (기본 수리량과 부품 효과 모두 포함)
-                    if (character.name === '신서현') {
-                        repairAmount *= 2;
-                    }  
-                    let partMessage = '';
-                    if (gameState.resources.parts > 0) {
-                        repairAmount += gameState.resources.parts;
-                        gameState.resources.parts -= 1;
-                        partMessage = '부품으로 ';
-                    }
-                    gameState.truckDurability += repairAmount;
-                    return `${prefix}${partMessage}트럭을 수리해서 내구도를 ${repairAmount}% 증가시켰어.`;
-                }
-            },
             forest: {
                 name: '숲 보내기',
                 description: '숲에서 식량을 찾아본다.',
@@ -777,18 +750,18 @@
                 execute: (character) => {
                     let prefix = '';
                     if (character.happy) prefix = '(싱글벙글) ';
-                    // 윤지는 야채만 0-4개 가져옴
+                    // 윤지는 야채만 0-2개 가져옴
                     if (character.name === '정윤지') {
                         let min = character.happy ? 1 : 0;
-                        let max = gameState.forestResourceReduced ? 3 : 4; // 자원 고갈 시 최대 3개
+                        let max = gameState.forestResourceReduced ? 1 : 2; // 자원 고갈 시 최대 1개
                         const vegetablesFound = Math.floor(Math.random() * (max - min + 1)) + min;
                         gameState.resources.vegetables += vegetablesFound;
                         return `${prefix}숲에 가서 야채 ${vegetablesFound}개를 가져왔어.`;
                     } else {
                         let min = character.happy ? 1 : 0;
-                        let max = gameState.forestResourceReduced ? 2 : 3; // 자원 고갈 시 최대 2개
+                        let max = gameState.forestResourceReduced ? 1 : 2; // 자원 고갈 시 최대 1개
                         const meatFound = Math.floor(Math.random() * (max - min + 1)) + min;
-                        const vegetablesFound = Math.floor(Math.random() * (3 - min)) + min;
+                        const vegetablesFound = Math.floor(Math.random() * (max - min + 1)) + min;
                         gameState.resources.meat += meatFound;
                         gameState.resources.vegetables += vegetablesFound;
                         
@@ -804,8 +777,8 @@
                                 return `${prefix}사냥감이 역으로 덤벼들었네... 부상을 입었다네...`;
                             }
                             
-                            gameState.resources.meat += 2;
-                            return `${prefix}사냥에 성공했네! 고기 ${meatFound + 2}개, 야채 ${vegetablesFound}개를 가져왔다네.`;
+                            gameState.resources.meat += 3;
+                            return `${prefix}사냥에 성공했네! 고기 ${meatFound + 3}개, 야채 ${vegetablesFound}개를 가져왔다네.`;
                         }
                         
                         return `${prefix}숲에 가서 고기 ${meatFound}개, 야채 ${vegetablesFound}개를 가져왔어.`;
@@ -1021,13 +994,40 @@
                     return "오늘 밤 파티를 준비했어!";
                 }
             },
+            repair: {
+                name: '트럭 수리',
+                description: '트럭 내구도를 증가시킨다. 🔧부품을 쓸 수 있다.',
+                isAvailable: (character) => !character.dead,
+                execute: (character) => {
+                    let prefix = '';
+                    let bonus = 0;
+                    if (character.happy) {
+                        prefix = '(싱글벙글) ';
+                        bonus = 1;
+                    }
+                    let repairAmount = 1 + bonus;
+                    
+                    // 서현은 수리 효과 2배 (기본 수리량과 부품 효과 모두 포함)
+                    if (character.name === '신서현') {
+                        repairAmount *= 2;
+                    }  
+                    let partMessage = '';
+                    if (gameState.resources.parts > 0) {
+                        repairAmount += gameState.resources.parts;
+                        gameState.resources.parts -= 1;
+                        partMessage = '부품으로 ';
+                    }
+                    gameState.truckDurability += repairAmount;
+                    return `${prefix}${partMessage}트럭을 수리해서 내구도를 ${repairAmount}% 증가시켰어.`;
+                }
+            },
             build: {
                 name: '건설',
                 description: '🔧부품 1개를 소모해 방어시설을 건설한다.',
                 isAvailable: (character) => !character.dead && gameState.resources.parts > 0,
                 execute: (character) => {
                     // 부품 소모는 선택 시 처리
-                    let defenseIncrease = 2;
+                    let defenseIncrease = 1;
                     
                     // 서현은 건설 효과 2배
                     if (character.name === '신서현') {
@@ -1248,19 +1248,28 @@
             // 식량 소비 (foodMessages 배열을 인자로 받음)
             consumeFood(foodMessages);
             
-            // 방어도 하락
-            gameState.defense -= (gameState.day >= 14 ? 10 : 5);
-            if (gameState.defense < 0) gameState.defense = 0;
-            
             // 밤 이벤트 메시지 초기화
             gameState.nightMessages = [];
             gameState.currentMessageIndex = 0;
             
+            // 행동 결과, 굶주림 메시지 추가
+            gameState.nightMessages = [...actionResults, ...foodMessages];
+            
+            // 방어도 하락 (50% 확률로 5% 하락)
+            if (Math.random() < 0.5) {
+                gameState.defense -= 5;
+                if (gameState.defense < 0) gameState.defense = 0;
+                // 살아있는 캐릭터 중 랜덤으로 한 명 선택
+                const livingCharacters = gameState.characters.filter(c => !c.dead);
+                if (livingCharacters.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * livingCharacters.length);
+                    const warningCharacter = livingCharacters[randomIndex];
+                    gameState.nightMessages.push(`${warningCharacter.name}: 캠프 주변이 어수선해. 방어도가 5% 감소했어.`);
+                }
+            }
+            
             // 밤 이벤트 체크
             checkNightEvents();
-            
-            // 행동 결과, 굶주림 메시지, 밤 이벤트 메시지 합치기
-            gameState.nightMessages = [...actionResults, ...foodMessages, ...gameState.nightMessages];
             
             // 다음 턴 준비
             updateResourcePanel();
@@ -1643,17 +1652,15 @@
             addToMessageLog(`===== ${gameState.day}일차 낮 =====`);
             
             // 15일 또는 30일 특별 이벤트 체크
-            if ((gameState.day === 15 || gameState.day === 30) && !gameState.forestResourceReduced && !gameState.ruinsInjuryIncreased) {
+            if (gameState.day === 15 || gameState.day === 30) {
                 const livingCharacters = gameState.characters.filter(c => !c.dead);
                 if (livingCharacters.length > 0) {
                     const randomCharacter = livingCharacters[Math.floor(Math.random() * livingCharacters.length)];
                     
                     // 랜덤으로 이벤트 선택
                     if (Math.random() < 0.5) {
-                        gameState.forestResourceReduced = true;
                         addToMessageLog(`${randomCharacter.name}: 숲의 자원이 고갈되고 있어!`);
                     } else {
-                        gameState.ruinsInjuryIncreased = true;
                         addToMessageLog(`${randomCharacter.name}: 폐허가 붕괴하고 있어!`);
                     }
                 }
