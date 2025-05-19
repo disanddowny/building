@@ -573,7 +573,7 @@
                 id: 'yebbi',
                 name: '예삐',
                 trait: '사냥꾼',
-                description: '숲에서 추가로 고기 2개를 가져옵니다.',
+                description: '위험하지만 숲에서 추가로 고기 2개를 가져옵니다.',
                 points: 3
             },
             seohyun: {
@@ -789,6 +789,16 @@
                         
                         // 예삐는 추가로 고기 2개를 가져옴
                         if (character.name === '예삐') {
+                            // 15% 확률로 사냥 실패
+                            if (Math.random() < 0.15) {
+                                character.injured = true;
+                                if (character.happy) {
+                                    setHappy(character, false);
+                                    return `${prefix}사냥감이 역으로 덤벼들었네... 부상을 입었다네...`;
+                                }
+                                return `${prefix}사냥감이 역으로 덤벼들었네... 부상을 입었다네...`;
+                            }
+                            
                             gameState.resources.meat += 2;
                             return `${prefix}사냥에 성공했네! 고기 ${meatFound + 2}개, 야채 ${vegetablesFound}개를 가져왔다네.`;
                         }
