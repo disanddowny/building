@@ -690,6 +690,9 @@
                 parts: 0,
                 alcohol: 0
             },
+            // 특별 이벤트 상태 추가
+            forestResourceReduced: false,
+            ruinsInjuryIncreased: false,
             characters: [
                 {
                     id: 'yoonji',
@@ -777,13 +780,15 @@
                     // 윤지는 야채만 0-4개 가져옴
                     if (character.name === '정윤지') {
                         let min = character.happy ? 1 : 0;
-                        const vegetablesFound = Math.floor(Math.random() * (5 - min)) + min; // min~4
+                        let max = gameState.forestResourceReduced ? 3 : 4; // 자원 고갈 시 최대 3개
+                        const vegetablesFound = Math.floor(Math.random() * (max - min + 1)) + min;
                         gameState.resources.vegetables += vegetablesFound;
                         return `${prefix}숲에 가서 야채 ${vegetablesFound}개를 가져왔어.`;
                     } else {
                         let min = character.happy ? 1 : 0;
-                        const meatFound = Math.floor(Math.random() * (3 - min)) + min; // min~2
-                        const vegetablesFound = Math.floor(Math.random() * (3 - min)) + min; // min~2
+                        let max = gameState.forestResourceReduced ? 2 : 3; // 자원 고갈 시 최대 2개
+                        const meatFound = Math.floor(Math.random() * (max - min + 1)) + min;
+                        const vegetablesFound = Math.floor(Math.random() * (3 - min)) + min;
                         gameState.resources.meat += meatFound;
                         gameState.resources.vegetables += vegetablesFound;
                         
@@ -825,8 +830,11 @@
                     const chulyong = gameState.characters.find(c => c.name === '김철용');
                     const hasChulyongProtection = chulyong && !chulyong.dead && gameState.truckDurability >= 50;
                     
-                    // 50% 확률로 부상 (김민지와 김철용의 보호 효과가 있는 경우 제외)
-                    if (Math.random() < 0.5 && character.name !== '김민지' && !hasChulyongProtection) {
+                    // 부상 확률 계산 (폐허 붕괴 시 20%p 증가)
+                    const injuryChance = gameState.ruinsInjuryIncreased ? 0.7 : 0.5;
+                    
+                    // 부상 체크 (김민지와 김철용의 보호 효과가 있는 경우 제외)
+                    if (Math.random() < injuryChance && character.name !== '김민지' && !hasChulyongProtection) {
                         character.injured = true;
                         message += " 하지만 부상을 입었어.";
                     }
@@ -1369,7 +1377,7 @@
                 const jaeyoung = gameState.characters.find(c => c.name === '장재영');
                 if (jaeyoung && !jaeyoung.dead && Math.random() < 0.1) {
                     setHappy(jaeyoung, true);
-                    gameState.nightMessages.push(`${jaeyoung.name}: 흐흐...`);
+                    gameState.nightMessages.push(`${jaeyoung.name}: 흐흐... 재밌다!`);
                 }
             } else {
                 character.dead = true;
@@ -1444,7 +1452,12 @@
                     gameState.nightMessages.push("홍지원: 망고, 물어!");
                     gameState.nightMessages.push("망고: 왕왕!");
                     gameState.nightMessages.push("갱단이 겁에 질려 도망갔다!");
-                    // 격퇴 성공 시 부상자 없음
+                    
+                    // 예삐가 살아있으면 감탄
+                    const yebbi = gameState.characters.find(c => c.name === '예삐');
+                    if (yebbi && !yebbi.dead) {
+                        gameState.nightMessages.push("예삐: 훌륭한 사냥개로군!");
+                    }
                 } else {
                     // 파티가 준비되어 있었다면 취소
                     const pilgeun = gameState.characters.find(c => c.name === '차필근');
@@ -1628,6 +1641,23 @@
             
             // 메시지 로그에 날짜 추가
             addToMessageLog(`===== ${gameState.day}일차 낮 =====`);
+            
+            // 15일 또는 30일 특별 이벤트 체크
+            if ((gameState.day === 15 || gameState.day === 30) && !gameState.forestResourceReduced && !gameState.ruinsInjuryIncreased) {
+                const livingCharacters = gameState.characters.filter(c => !c.dead);
+                if (livingCharacters.length > 0) {
+                    const randomCharacter = livingCharacters[Math.floor(Math.random() * livingCharacters.length)];
+                    
+                    // 랜덤으로 이벤트 선택
+                    if (Math.random() < 0.5) {
+                        gameState.forestResourceReduced = true;
+                        addToMessageLog(`${randomCharacter.name}: 숲의 자원이 고갈되고 있어!`);
+                    } else {
+                        gameState.ruinsInjuryIncreased = true;
+                        addToMessageLog(`${randomCharacter.name}: 폐허가 붕괴하고 있어!`);
+                    }
+                }
+            }
             
             // 식량 부족 체크
             const totalMeat = gameState.resources.meat;
