@@ -318,6 +318,100 @@
             cursor: pointer;
             font-weight: bold;
         }
+
+        /* 캐릭터 선택 모달 스타일 */
+        .character-select-content {
+            max-width: 800px;
+            width: 90%;
+        }
+
+        .selection-info {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1.1em;
+        }
+
+        .selected-count, .remaining-points {
+            margin: 5px 0;
+        }
+
+        .character-select-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .character-select-button {
+            background-color: var(--secondary-color);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .character-select-button:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .character-select-button.selected {
+            border-color: var(--accent-color);
+            background-color: rgba(255, 149, 0, 0.1);
+        }
+
+        .character-select-button .character-name {
+            font-size: 1.2em;
+            margin-bottom: 8px;
+            color: var(--accent-color);
+        }
+
+        .character-select-button .character-trait {
+            font-size: 0.9em;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .character-select-button .trait-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.9);
+            padding: 8px 12px;
+            border-radius: 4px;
+            width: 200px;
+            z-index: 100;
+            display: none;
+            font-size: 0.85em;
+            line-height: 1.4;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .character-select-button:hover .trait-tooltip {
+            display: block;
+        }
+
+        #start-game-button:disabled {
+            background-color: #8e8e93;
+            cursor: not-allowed;
+        }
+
+        .character-points {
+            font-size: 0.8em;
+            color: var(--accent-color);
+            margin-left: 5px;
+        }
+
+        #character-select-modal {
+            z-index: 900;
+        }
+
+        #night-events-modal {
+            z-index: 1100;
+        }
     </style>
 </head>
 <body>
@@ -399,7 +493,96 @@
         </div>
     </div>
     
+    <div id="character-select-modal" class="modal">
+        <div class="modal-content character-select-content">
+            <h2 class="modal-title">캐릭터 선택</h2>
+            <p>총 4명의 캐릭터를 선택해주세요.</p>
+            <div class="character-select-grid" id="character-select-grid">
+                <!-- 캐릭터 버튼들이 JavaScript로 동적 생성됩니다 -->
+            </div>
+            <div class="selection-info">
+                <div class="selected-count">선택된 캐릭터: <span id="selected-count">0</span>/4</div>
+                <div class="remaining-points">남은 포인트: <span id="remaining-points">4</span>pt</div>
+            </div>
+            <button class="modal-button" id="start-game-button" disabled>게임 시작</button>
+        </div>
+    </div>
+    
     <script>
+        // 캐릭터 정의
+        const allCharacters = {
+            yoonji: {
+                id: 'yoonji',
+                name: '정윤지',
+                trait: '채식주의자',
+                description: '고기를 먹지 못하고 야채만 먹을 수 있습니다.',
+                points: 0
+            },
+            seohyun: {
+                id: 'seohyun',
+                name: '신서현',
+                trait: '수석 개발자',
+                description: '수리 효과가 2배가 됩니다.',
+                points: 2
+            },
+            pilgeun: {
+                id: 'pilgeun',
+                name: '차필근',
+                trait: '파티 플래너',
+                description: '술을 소모해 [파티 준비] 행동을 할 수 있습니다.',
+                points: 2
+            },
+            sungkook: {
+                id: 'sungkook',
+                name: '오성국',
+                trait: '대식가',
+                description: '하루에 식량을 2개씩 소비합니다.',
+                points: 0
+            },
+            yuwon: {
+                id: 'yuwon',
+                name: '이유원',
+                trait: '도박사',
+                description: '[암시장 보내기]가 [도박장 보내기]로 변경됩니다.',
+                points: 1
+            },
+            seohyeop: {
+                id: 'seohyeop',
+                name: '김세협',
+                trait: '시인',
+                description: '밤에 15% 확률로 시를 지어줍니다.',
+                points: 1
+            },
+            geonhee: {
+                id: 'geonhee',
+                name: '김건희',
+                trait: '고관절 환자',
+                description: '밤마다 50% 확률로 부상당합니다. 부품 2개로 [고관절 개조]를 해야 디버프가 사라집니다.',
+                points: 0
+            },
+            minji: {
+                id: 'minji',
+                name: '김민지',
+                trait: '가상세계 은둔자',
+                description: '폐허와 암시장에서 부상당하지 않습니다.',
+                points: 2
+            },
+            jinyoung: {
+                id: 'jinyoung',
+                name: '최진영',
+                trait: '불면증 환자',
+                description: '경계 효과가 2배가 되지만 그 후 우울해집니다.',
+                points: 1
+            },
+            jiwon: {
+                id: 'jiwon',
+                name: '홍지원',
+                trait: '사냥개 조련사',
+                description: '지옥에서 온 사냥개 망고가 15% 확률로 갱단을 물리칩니다.',
+                points: 1
+            }
+        };
+
         // 게임 상태
         const gameState = {
             day: 1,
@@ -457,7 +640,8 @@
                 }
             ],
             nightMessages: [],
-            currentMessageIndex: 0
+            currentMessageIndex: 0,
+            remainingPoints: 4
         };
 
         // 행동 정의
@@ -474,10 +658,9 @@
                         bonus = 1;
                     }
                     let repairAmount = 1 + bonus;
-                    // 부품당 추가 수리
-                  
+                    
                     // 서현은 수리 효과 2배 (기본 수리량과 부품 효과 모두 포함)
-                    if (character.id === 'seohyun') {
+                    if (character.name === '신서현') {
                         repairAmount *= 2;
                     }  
                     let partMessage = '';
@@ -497,10 +680,10 @@
                 execute: (character) => {
                     let prefix = '';
                     if (character.happy) prefix = '(싱글벙글) ';
-                    // 윤지는 야채만 0-5개 가져옴
-                    if (character.id === 'yoonji') {
+                    // 윤지는 야채만 0-4개 가져옴
+                    if (character.name === '정윤지') {
                         let min = character.happy ? 1 : 0;
-                        const vegetablesFound = Math.floor(Math.random() * (6 - min)) + min; // min~5
+                        const vegetablesFound = Math.floor(Math.random() * (5 - min)) + min; // min~4
                         gameState.resources.vegetables += vegetablesFound;
                         return `${prefix}숲에 가서 야채 ${vegetablesFound}개를 가져왔어.`;
                     } else {
@@ -526,8 +709,8 @@
                     gameState.resources.parts += partsFound;
                     gameState.resources.alcohol += alcoholFound;
                     let message = `${prefix}폐허에 가서 부품 ${partsFound}개, 술 ${alcoholFound}개를 가져왔어.`;
-                    // 50% 확률로 부상
-                    if (Math.random() < 0.5) {
+                    // 50% 확률로 부상 (김민지는 제외)
+                    if (Math.random() < 0.5 && character.name !== '김민지') {
                         character.injured = true;
                         message += " 하지만 부상을 입었어.";
                     }
@@ -541,13 +724,47 @@
                 execute: (character) => {
                     let prefix = '';
                     if (character.happy) prefix = '(싱글벙글) ';
+                    
+                    // 이유원은 도박장으로 변경
+                    if (character.name === '이유원') {
+                        gameState.resources.alcohol -= 1;
+                        const maxGain = character.happy ? 4 : 3; // 행복 상태일 때 최대 4개
+                        const alcoholGained = Math.floor(Math.random() * (maxGain + 3)) - 2; // -2 ~ maxGain
+                        
+                        // 술이 음수가 되지 않도록 보정
+                        if (alcoholGained < 0) {
+                            gameState.resources.alcohol = Math.max(0, gameState.resources.alcohol + alcoholGained);
+                        } else {
+                            gameState.resources.alcohol += alcoholGained;
+                        }
+                        
+                        let message = '';
+                        if (alcoholGained < 0) {
+                            character.injured = true;
+                            message = `${prefix}도박장에서 ${Math.abs(alcoholGained)}개를 잃고 도망치다가 총에 맞았어...`;
+                        } else if (alcoholGained === 0) {
+                            message = `${prefix}도박장에서 아무것도 못 가져왔어.`;
+                        } else if (alcoholGained === 1) {
+                            message = `${prefix}도박장에서 술 1개를 따왔어.`;
+                        } else if (alcoholGained === 2) {
+                            message = `${prefix}도박장에서 술 2개를 따왔어!`;
+                        } else if (alcoholGained === 3) {
+                            setHappy(character, true);
+                            message = `${prefix}올인! 도박장에서 술 3개를 따왔어! 행복해!`;
+                        } else {
+                            message = `${prefix}도박장에서 술 4개를 따왔어!! 최고의 날이야!!`;
+                        }
+                        return message;
+                    }
+                    
+                    // 다른 캐릭터들은 기존 암시장 로직
                     gameState.resources.alcohol -= 1;
                     let min = character.happy ? 3 : 2;
                     const meatFound = Math.floor(Math.random() * (6 - min + 1)) + min; // min~6
                     gameState.resources.meat += meatFound;
                     let message = `${prefix}암시장에 가서 술 1개를 고기 ${meatFound}개로 바꿔왔어.`;
-                    // 50% 확률로 사기꾼을 만나 부상
-                    if (Math.random() < 0.5) {
+                    // 50% 확률로 사기꾼을 만나 부상 (김민지는 제외)
+                    if (Math.random() < 0.5 && character.name !== '김민지') {
                         character.injured = true;
                         message += " 근데 거래 끝나고 뒤에서 총을 쏘더라고.";
                     }
@@ -603,15 +820,29 @@
                         prefix = '(싱글벙글) ';
                         bonus = 1;
                     }
-                    gameState.defense += gameState.defenseFortification + bonus;
+                    let defenseIncrease = gameState.defenseFortification + bonus;
+                    
+                    // 최진영은 경계 효과 2배
+                    if (character.name === '최진영') {
+                        defenseIncrease *= 2;
+                        // 경계 후 우울해짐
+                        setDepressed(character, true);
+                    }
+                    
+                    gameState.defense += defenseIncrease;
                     if (gameState.defense > 100) gameState.defense = 100;
-                    return `${prefix}경계를 서서 캠프의 방어도를 ${gameState.defenseFortification + bonus}% 올렸어.`;
+                    
+                    let message = `${prefix}경계를 서서 캠프의 방어도를 ${defenseIncrease}% 올렸어.`;
+                    if (character.name === '최진영') {
+                        message += " 난 진짜 괜찮아. 밤샜지만 진짜 괜찮아. 더 시켜줘.";
+                    }
+                    return message;
                 }
             },
             party: {
                 name: '파티 준비',
                 description: '🍺술 1개를 소모해 밤에 있을 파티를 준비한다.',
-                isAvailable: (character) => character.id === 'pilgeun' && !character.dead && gameState.resources.alcohol > 0,
+                isAvailable: (character) => character.name === '차필근' && !character.dead && gameState.resources.alcohol > 0,
                 execute: (character) => {
                     // 술 소모는 선택 시 처리
                     character.preparingParty = true;
@@ -627,6 +858,17 @@
                     gameState.defenseFortification += 2;
                     return `건설을 해서 앞으로 경계를 서면 방어도가 ${gameState.defenseFortification}% 올라가게 됐어.`;
                 }
+            },
+            hipSurgery: {
+                name: '고관절 개조',
+                description: '🔧부품 2개를 소모해 고관절을 개조한다.',
+                isAvailable: (character) => character.name === '김건희' && !character.dead && gameState.resources.parts >= 2,
+                execute: (character) => {
+                    gameState.resources.parts -= 2;
+                    character.trait = '고관절 사이보그';
+                    character.hasHipSurgery = true;
+                    return "고관절 개조가 완료됐어! 이제 헬스도 할 수 있어.";
+                }
             }
         };
 
@@ -636,16 +878,15 @@
             const charactersContainer = document.getElementById('characters-container');
             charactersContainer.innerHTML = '';
             
-            gameState.characters.forEach(character => {
+            // 캐릭터 순서대로 카드 생성
+            for (let i = 0; i < gameState.characters.length; i++) {
+                const character = gameState.characters[i];
                 const card = createCharacterCard(character);
                 charactersContainer.appendChild(card);
-            });
+            }
             
             // 턴 종료 버튼 이벤트
             document.getElementById('end-turn-button').addEventListener('click', endTurn);
-            
-            // 계속 버튼 이벤트
-            document.getElementById('continue-night-button').addEventListener('click', continueNightEvents);
             
             // 자원 패널 업데이트
             updateResourcePanel();
@@ -689,13 +930,16 @@
                     if (action.isAvailable(character)) {
                         const button = document.createElement('button');
                         button.className = 'action-button';
-                        button.textContent = action.name;
+                        button.textContent = character.name === '이유원' && actionKey === 'blackmarket' ? '도박장 보내기' : action.name;
+                        button.dataset.action = actionKey;
                         button.disabled = character.action !== null;
                         
                         // 툴크 추가
                         const tooltip = document.createElement('div');
                         tooltip.className = 'action-tooltip';
-                        tooltip.textContent = action.description;
+                        tooltip.textContent = character.name === '이유원' && actionKey === 'blackmarket' ? 
+                            '🍺술을 걸고 도박을 한다.' : 
+                            action.description;
                         button.appendChild(tooltip);
                         
                         // 클릭 이벤트
@@ -713,7 +957,23 @@
 
         // 행동 선택
         function selectAction(character, actionKey) {
+            console.log(`Selecting action ${actionKey} for ${character.name}`); // 디버깅용
+            
+            // 행동이 유효한지 확인
+            if (!actions[actionKey]) {
+                console.error(`Invalid action key: ${actionKey}`);
+                return;
+            }
+            
+            // 행동이 가능한지 확인
+            if (!actions[actionKey].isAvailable(character)) {
+                console.error(`Action ${actionKey} is not available for ${character.name}`);
+                return;
+            }
+            
             character.action = actionKey;
+            console.log(`Action set for ${character.name}: ${actionKey}`); // 디버깅용
+            
             // 파티 준비나 건설처럼 자원을 소모하는 행동은 선택 즉시 자원 차감
             if (actionKey === 'party') {
                 if (gameState.resources.alcohol > 0) {
@@ -725,14 +985,17 @@
                     gameState.resources.parts -= 1;
                 }
             }
+            
             // 버튼 비활성화
             const actionsContainer = document.querySelector(`#actions-${character.id}`);
             const buttons = actionsContainer.querySelectorAll('.action-button');
             buttons.forEach(button => {
                 button.disabled = true;
             });
+            
             // 턴 종료 버튼 활성화 여부 체크
             checkEndTurnButton();
+            
             // 자원 패널 즉시 갱신
             updateResourcePanel();
         }
@@ -754,31 +1017,47 @@
             gameState.isNight = true;
             document.getElementById('time-period').textContent = '밤';
             
-            // 밤 이벤트 메시지 초기화
-            gameState.nightMessages = [];
-            gameState.currentMessageIndex = 0;
+            // 행동 결과를 저장할 임시 배열
+            const actionResults = [];
+            // 굶주림 메시지를 저장할 임시 배열
+            const foodMessages = [];
             
-            // 각 캐릭터의 행동 결과 처리
-            gameState.characters.forEach(character => {
+            // 각 캐릭터의 행동 결과 처리 (순서대로)
+            for (let i = 0; i < gameState.characters.length; i++) {
+                const character = gameState.characters[i];
                 if (!character.dead && character.action !== null) {
                     const action = actions[character.action];
-                    const result = action.execute(character);
-                    gameState.nightMessages.push(`${character.name}: ${result}`);
+                    if (action && typeof action.execute === 'function') {
+                        try {
+                            const result = action.execute(character);
+                            if (result && typeof result === 'string') {
+                                actionResults.push(`${character.name}: ${result}`);
+                            }
+                        } catch (error) {
+                            console.error(`Error executing action for ${character.name}:`, error);
+                        }
+                    }
                 }
-                
                 // 행동 초기화
                 character.action = null;
-            });
+            }
             
-            // 식량 소비
-            consumeFood();
+            // 식량 소비 (foodMessages 배열을 인자로 받음)
+            consumeFood(foodMessages);
             
             // 방어도 하락
             gameState.defense -= (gameState.day >= 14 ? 10 : 5);
             if (gameState.defense < 0) gameState.defense = 0;
             
+            // 밤 이벤트 메시지 초기화
+            gameState.nightMessages = [];
+            gameState.currentMessageIndex = 0;
+            
             // 밤 이벤트 체크
             checkNightEvents();
+            
+            // 행동 결과, 굶주림 메시지, 밤 이벤트 메시지 합치기
+            gameState.nightMessages = [...actionResults, ...foodMessages, ...gameState.nightMessages];
             
             // 다음 턴 준비
             updateResourcePanel();
@@ -791,43 +1070,46 @@
             startNightEvents();
         }
 
-        // 식량 소비
-        function consumeFood() {
-            // 캐릭터 순서: 정윤지 - 신서현 - 차필근 - 오성국
-            const order = ['yoonji', 'seohyun', 'pilgeun', 'sungkook'];
-            
-            for (const id of order) {
-                const character = gameState.characters.find(c => c.id === id);
-                
+        // 식량 소비 (foodMessages 배열을 인자로 받음)
+        function consumeFood(foodMessages) {
+            for (let i = 0; i < gameState.characters.length; i++) {
+                const character = gameState.characters[i];
                 if (!character.dead) {
                     // 오성국은 식량 2개 소비
-                    const neededFood = character.id === 'sungkook' ? 2 : 1;
-                    
-                    if (character.id === 'yoonji') {
+                    const neededFood = character.name === '오성국' ? 2 : 1;
+                    let hasEaten = false;
+
+                    if (character.name === '정윤지') {
                         // 윤지는 야채만 먹음
                         if (gameState.resources.vegetables >= neededFood) {
                             gameState.resources.vegetables -= neededFood;
-                        } else {
-                            // 식량 부족
-                            gameState.nightMessages.push(`${character.name}: 야채 아니면 안 먹을래...`);
-                            makeDepressed(character);
+                            hasEaten = true;
                         }
                     } else {
                         // 다른 캐릭터들은 고기 우선, 부족하면 야채
                         if (gameState.resources.meat >= neededFood) {
                             gameState.resources.meat -= neededFood;
+                            hasEaten = true;
                         } else if (gameState.resources.vegetables >= neededFood) {
                             gameState.resources.vegetables -= neededFood;
+                            hasEaten = true;
                         } else if (gameState.resources.meat + gameState.resources.vegetables >= neededFood) {
                             // 혼합 식량
                             const usedMeat = Math.min(gameState.resources.meat, neededFood);
                             gameState.resources.meat -= usedMeat;
                             gameState.resources.vegetables -= (neededFood - usedMeat);
-                        } else {
-                            // 식량 부족
-                            gameState.nightMessages.push(`${character.name}: 식량이 부족해서 굶었어...`);
-                            makeDepressed(character);
+                            hasEaten = true;
                         }
+                    }
+
+                    // 식량을 먹지 못했다면 반드시 대사 출력
+                    if (!hasEaten) {
+                        if (character.name === '정윤지') {
+                            foodMessages.push(`${character.name}: 야채 아니면 안 먹을래...`);
+                        } else {
+                            foodMessages.push(`${character.name}: 식량이 부족해서 굶었어...`);
+                        }
+                        makeDepressed(character, foodMessages);
                     }
                 }
             }
@@ -855,21 +1137,20 @@
         }
 
         // 캐릭터 우울하게 만듦
-        function makeDepressed(character) {
+        function makeDepressed(character, msgArray) {
             if (character.happy) {
                 setHappy(character, false);
-                gameState.nightMessages.push(`${character.name}: ${character.name} 이제 안 행복해...`);
+                msgArray.push(`${character.name}: 이제 안 행복해...`);
                 return;
             }
-            if (Math.random() < 0.5) {
-                if (!character.depressed) {
-                    setDepressed(character, true);
-                    gameState.nightMessages.push(`${character.name}: 우울해졌어...`);
-                } else {
-                    character.dead = true;
-                    gameState.nightMessages.push(`${character.name}: 미안, 친구들. 나 같은 쓰레기가 살아서 뭐하겠어. 잘 있어.`);
-                    handleCharacterDeath();
-                }
+            
+            if (!character.depressed) {
+                setDepressed(character, true);
+                msgArray.push(`${character.name}: 우울해졌어...`);
+            } else {
+                character.dead = true;
+                msgArray.push(`${character.name}: 미안, 친구들. 나 같은 쓰레기가 살아서 뭐하겠어. 잘 있어.`);
+                handleCharacterDeath();
             }
         }
 
@@ -879,6 +1160,12 @@
                 setHappy(character, false);
                 gameState.nightMessages.push(`${character.name}: 행복이 사라졌어...`);
             }
+            
+            // 김건희의 고관절 메시지 먼저 출력
+            if (character.name === '김건희' && !character.hasHipSurgery) {
+                gameState.nightMessages.push(`${character.name}: 아... 고관절이 또...`);
+            }
+            
             if (!character.injured) {
                 setInjured(character, true);
                 gameState.nightMessages.push(`${character.name}: 부상을 입었어...`);
@@ -892,24 +1179,22 @@
         // 캐릭터 사망 처리
         function handleCharacterDeath() {
             // 다른 캐릭터들 50% 확률로 우울
-            gameState.characters.forEach(character => {
-                if (!character.dead && Math.random() < 0.5) {
-                    if (!character.depressed) {
-                        setDepressed(character, true);
-                        // 가장 최근에 죽은 캐릭터 찾기
-                        const recentlyDeadCharacters = gameState.characters.filter(c => c.dead && !c.wasProcessed);
-                        if (recentlyDeadCharacters.length > 0) {
-                            // 가장 최근에 죽은 캐릭터 선택
-                            const deadCharacter = recentlyDeadCharacters[recentlyDeadCharacters.length - 1];
-                            deadCharacter.wasProcessed = true; // 이미 언급된 캐릭터 표시
+            const recentlyDeadCharacters = gameState.characters.filter(c => c.dead && !c.wasProcessed);
+            if (recentlyDeadCharacters.length > 0) {
+                // 가장 최근에 죽은 캐릭터 선택
+                const deadCharacter = recentlyDeadCharacters[recentlyDeadCharacters.length - 1];
+                deadCharacter.wasProcessed = true; // 이미 언급된 캐릭터 표시
+                
+                // 각 캐릭터별로 50% 확률로 우울 반응
+                gameState.characters.forEach(character => {
+                    if (!character.dead && Math.random() < 0.5) {
+                        if (!character.depressed) {
+                            setDepressed(character, true);
                             gameState.nightMessages.push(`${character.name}: ${deadCharacter.name}이가 죽다니...`);
-                        } else {
-                            // 죽은 캐릭터를 특정할 수 없는 경우 기본 메시지
-                            gameState.nightMessages.push(`${character.name}: 너무 슬퍼...`);
                         }
                     }
-                }
-            });
+                });
+            }
             
             // 게임 오버 체크
             checkGameOver();
@@ -917,19 +1202,27 @@
 
         // 밤 이벤트 체크
         function checkNightEvents() {
+            // 김건희의 밤 부상 체크
+            const geonhee = gameState.characters.find(c => c.name === '김건희');
+            if (geonhee && !geonhee.dead && !geonhee.hasHipSurgery && Math.random() < 0.5) {
+                makeInjured(geonhee);
+            }
+
             // 습격 체크 (방어도의 확률로 습격 없음)
             if (Math.random() > gameState.defense / 100) {
                 // 습격 발생
                 gameState.nightMessages.push("갱단이 습격해왔다!");
                 
-                // 성국이 살아있고 부상이 아니라면 25% 확률로 격퇴
-                const sungkook = gameState.characters.find(c => c.id === 'sungkook');
-                if (sungkook && !sungkook.dead && !sungkook.injured && Math.random() < 0.25) {
-                    gameState.nightMessages.push("오성국: 걱정 마! 내가 격퇴했어!");
+                // 지오원이 살아있으면 15% 확률로 격퇴
+                const jiwon = gameState.characters.find(c => c.name === '홍지원');
+                if (jiwon && !jiwon.dead && Math.random() < 0.15) {
+                    gameState.nightMessages.push("홍지원: 망고, 물어!");
+                    gameState.nightMessages.push("망고: 왕왕!");
+                    gameState.nightMessages.push("갱단이 겁에 질려 도망갔다!");
                     // 격퇴 성공 시 부상자 없음
                 } else {
                     // 파티가 준비되어 있었다면 취소
-                    const pilgeun = gameState.characters.find(c => c.id === 'pilgeun');
+                    const pilgeun = gameState.characters.find(c => c.name === '차필근');
                     if (pilgeun?.preparingParty) {
                         gameState.nightMessages.push("파티는 취소됐다!");
                         pilgeun.preparingParty = false;
@@ -942,8 +1235,8 @@
                         const victim = livingCharacters[victimIndex];
                         makeInjured(victim);
                     }
-                       // 방어도가 낮을수록 트럭 공격 확률 증가 (방어도 30% 이하면 70% 확률로 트럭 공격)
-                       if (Math.random() > gameState.defense / 100) {
+                    // 방어도가 낮을수록 트럭 공격 확률 증가
+                    if (Math.random() > gameState.defense / 100) {
                         const damage = Math.floor(Math.random() * 10) + 1; // 1-10 데미지
                         gameState.truckDurability -= damage;
                         
@@ -955,37 +1248,115 @@
                         }
                     }
                 }
-            } else if (gameState.characters.find(c => c.id === 'pilgeun')?.preparingParty) {
+            } else {
                 // 파티 준비했고 습격이 없었음
-                gameState.nightMessages.push("차필근이 준비했다는 파티가 시작됐다!");
-                
-                // 랜덤하게 3개의 대사 중 하나 선택
-                const partyMessages = [
-                    "차필근: 다같이 우리 반지하의 미래를 스케치북에 그려볼까요?",
-                    "차필근: 제가 피아노를 연주해드릴게요! (딩딩딩)",
-                    "차필근: (열창하며) 압둘바~ 압둘바~ 압둘바~"
-                ];
-                const randomMessage = partyMessages[Math.floor(Math.random() * partyMessages.length)];
-                gameState.nightMessages.push(randomMessage);
-                
-                // 모든 캐릭터의 우울 회복
-                gameState.characters.forEach(character => {
-                    if (!character.dead && character.depressed) {
-                        setDepressed(character, false);
-                        gameState.nightMessages.push(`${character.name}: 우울함이 사라졌어!`);
+                const pilgeun = gameState.characters.find(c => c.name === '차필근');
+                if (pilgeun?.preparingParty) {
+                    gameState.nightMessages.push("차필근이 준비했다는 파티가 시작됐다!");
+                    
+                    // 랜덤하게 3개의 대사 중 하나 선택
+                    const partyMessages = [
+                        "차필근: 다같이 우리 반지하의 미래를 스케치북에 그려볼까요?",
+                        "차필근: 제가 피아노를 연주해드릴게요! (딩딩딩)",
+                        "차필근: (열창하며) 압둘바~ 압둘바~ 압둘바~"
+                    ];
+                    const randomMessage = partyMessages[Math.floor(Math.random() * partyMessages.length)];
+                    gameState.nightMessages.push(randomMessage);
+                    
+                    // 김세협의 시 창작 (파티 중에는 100% 발동)
+                    const seohyeop = gameState.characters.find(c => c.name === '김세협');
+                    if (seohyeop && !seohyeop.dead) {
+                        const partyPoems = [
+                            "우리의 파티는 별빛처럼 빛나고,\n모든 어둠을 밝혀주는 희망의 빛이 되어주네.",
+                            "이 순간 우리는 하나가 되어,\n서로의 마음을 나누며 행복을 나누네.",
+                            "파티의 기쁨이 우리를 감싸고,\n모든 걱정과 근심을 잊게 해주네."
+                        ];
+                        const poem = partyPoems[Math.floor(Math.random() * partyPoems.length)];
+                        gameState.nightMessages.push(`김세협: ${poem}`);
+                        
+                        // 랜덤 생존자 한 명의 우울 회복 또는 행복 부여
+                        const living = gameState.characters.filter(c => !c.dead && c.name !== '김세협');
+                        if (living.length > 0) {
+                            const target = living[Math.floor(Math.random() * living.length)];
+                            if (target.depressed) {
+                                setDepressed(target, false);
+                                gameState.nightMessages.push(`${target.name}: 시를 듣고 마음이 편안해졌어...`);
+                            } else {
+                                setHappy(target, true);
+                                gameState.nightMessages.push(`${target.name}: 시를 듣고 행복해졌어!`);
+                            }
+                        }
                     }
-                });
-                // 파티 성공 시 랜덤 생존자 1명에게 행복 부여
-                const living = gameState.characters.filter(c => !c.dead);
-                if (living.length > 0) {
-                    const lucky = living[Math.floor(Math.random() * living.length)];
-                    setHappy(lucky, true);
-                    gameState.nightMessages.push(`${lucky.name}: ${lucky.name} 행복해! 뭐든지 해낼 수 있을 것만 같아!`);
+                    
+                    // 모든 캐릭터의 우울 회복
+                    gameState.characters.forEach(character => {
+                        if (!character.dead && character.depressed) {
+                            setDepressed(character, false);
+                            gameState.nightMessages.push(`${character.name}: 우울함이 사라졌어!`);
+                        }
+                    });
+                    // 파티 성공 시 랜덤 생존자 1명에게 행복 부여
+                    const living = gameState.characters.filter(c => !c.dead);
+                    if (living.length > 0) {
+                        const lucky = living[Math.floor(Math.random() * living.length)];
+                        setHappy(lucky, true);
+                        gameState.nightMessages.push(`${lucky.name}: ${lucky.name} 행복해! 뭐든지 해낼 수 있을 것만 같아!`);
+                    }
+                } else {
+                    // 습격이 없었고 파티도 없었을 때 김세협의 시 창작 (15% 확률)
+                    const seohyeop = gameState.characters.find(c => c.name === '김세협');
+                    if (seohyeop && !seohyeop.dead && Math.random() < 0.15) {
+                        if (seohyeop.depressed) {
+                            // 우울한 상태의 시
+                            const darkPoems = [
+                                "희망이 부족해...\n이 세상은 우리를 조금씩 먹어치우고 있어.",
+                                "생존은 허상일 뿐이야...\n우리는 결국 모두 죽음을 맞이할 거야.",
+                                "이 지옥 속에서 우리는...\n점점 더 깊은 절망으로 빠져들고 있어."
+                            ];
+                            const poem = darkPoems[Math.floor(Math.random() * darkPoems.length)];
+                            gameState.nightMessages.push(`김세협: ${poem}`);
+                            
+                            // 랜덤 생존자 한 명의 행복 제거 또는 우울 부여
+                            const living = gameState.characters.filter(c => !c.dead && c.name !== '김세협');
+                            if (living.length > 0) {
+                                const target = living[Math.floor(Math.random() * living.length)];
+                                if (target.happy) {
+                                    setHappy(target, false);
+                                    gameState.nightMessages.push(`${target.name}: 시를 듣고 행복이 사라졌어...`);
+                                } else {
+                                    setDepressed(target, true);
+                                    gameState.nightMessages.push(`${target.name}: 시를 듣고 죽고 싶어졌어...`);
+                                }
+                            }
+                        } else {
+                            // 일반 상태의 시
+                            const normalPoems = [
+                                "이 밤하늘의 별들이,\n우리의 미래를 비추고 있어.",
+                                "폐허 속에서도 우리는,\n새로운 희망을 찾아내고 있어.",
+                                "서로를 믿고 의지하며,\n우리는 더 강해질 수 있어."
+                            ];
+                            const poem = normalPoems[Math.floor(Math.random() * normalPoems.length)];
+                            gameState.nightMessages.push(`김세협: ${poem}`);
+                            
+                            // 랜덤 생존자 한 명의 우울 회복 또는 행복 부여
+                            const living = gameState.characters.filter(c => !c.dead && c.name !== '김세협');
+                            if (living.length > 0) {
+                                const target = living[Math.floor(Math.random() * living.length)];
+                                if (target.depressed) {
+                                    setDepressed(target, false);
+                                    gameState.nightMessages.push(`${target.name}: 시를 듣고 마음이 편안해졌어...`);
+                                } else {
+                                    setHappy(target, true);
+                                    gameState.nightMessages.push(`${target.name}: 시를 듣고 행복해졌어!`);
+                                }
+                            }
+                        }
+                    }
                 }
             }
             
             // 파티 준비 상태 초기화
-            const pilgeun = gameState.characters.find(c => c.id === 'pilgeun');
+            const pilgeun = gameState.characters.find(c => c.name === '차필근');
             if (pilgeun) {
                 pilgeun.preparingParty = false;
             }
@@ -996,23 +1367,30 @@
             if (gameState.nightMessages.length > 0) {
                 const modal = document.getElementById('night-events-modal');
                 const message = document.getElementById('night-event-message');
+                const continueButton = document.getElementById('continue-night-button');
+                
+                // 메시지 표시
                 message.textContent = gameState.nightMessages[gameState.currentMessageIndex];
                 modal.style.display = 'flex';
+                
+                // 계속 버튼 이벤트 설정
+                continueButton.onclick = function() {
+                    console.log(`Current message index: ${gameState.currentMessageIndex}`); // 디버깅용
+                    console.log(`Total messages: ${gameState.nightMessages.length}`); // 디버깅용
+                    
+                    gameState.currentMessageIndex++;
+                    
+                    if (gameState.currentMessageIndex < gameState.nightMessages.length) {
+                        console.log(`Showing message: ${gameState.nightMessages[gameState.currentMessageIndex]}`); // 디버깅용
+                        message.textContent = gameState.nightMessages[gameState.currentMessageIndex];
+                    } else {
+                        console.log('All messages shown, moving to next day'); // 디버깅용
+                        modal.style.display = 'none';
+                        gameState.currentMessageIndex = 0; // 인덱스 초기화
+                        goToNextDay();
+                    }
+                };
             } else {
-                goToNextDay();
-            }
-        }
-
-        // 밤 이벤트 계속
-        function continueNightEvents() {
-            gameState.currentMessageIndex++;
-            
-            if (gameState.currentMessageIndex < gameState.nightMessages.length) {
-                const message = document.getElementById('night-event-message');
-                message.textContent = gameState.nightMessages[gameState.currentMessageIndex];
-            } else {
-                const modal = document.getElementById('night-events-modal');
-                modal.style.display = 'none';
                 goToNextDay();
             }
         }
@@ -1035,7 +1413,7 @@
             gameState.characters.forEach(character => {
                 if (!character.dead) {
                     // 오성국은 식량을 2개 소비
-                    requiredFood += (character.id === 'sungkook') ? 2 : 1;
+                    requiredFood += (character.name === '오성국' ? 2 : 1);
                 }
             });
             
@@ -1144,6 +1522,9 @@
             document.getElementById('vegetables-value').textContent = gameState.resources.vegetables;
             document.getElementById('parts-value').textContent = gameState.resources.parts;
             document.getElementById('alcohol-value').textContent = gameState.resources.alcohol;
+            
+            // 자원이 변경될 때마다 버튼 상태 업데이트
+            updateActionButtons();
         }
 
         // 게임 상태 업데이트
@@ -1166,9 +1547,136 @@
             messageLog.scrollTop = messageLog.scrollHeight;
         }
 
+        // 캐릭터 선택 모달 초기화
+        function initializeCharacterSelect() {
+            const grid = document.getElementById('character-select-grid');
+            grid.innerHTML = '';
+            
+            Object.values(allCharacters).forEach(character => {
+                const button = document.createElement('div');
+                button.className = 'character-select-button';
+                button.dataset.characterId = character.id;
+                
+                button.innerHTML = `
+                    <div class="character-name">${character.name} <span class="character-points">(${character.points}pt)</span></div>
+                    <div class="character-trait">${character.trait}</div>
+                    <div class="trait-tooltip">${character.description}</div>
+                `;
+                
+                button.addEventListener('click', () => toggleCharacterSelection(character.id));
+                grid.appendChild(button);
+            });
+            
+            // 게임 시작 버튼 이벤트
+            document.getElementById('start-game-button').addEventListener('click', startGameWithSelectedCharacters);
+            
+            // 초기 포인트 설정
+            gameState.remainingPoints = 4;
+            updateSelectedCount();
+        }
+
+        // 캐릭터 선택 토글
+        function toggleCharacterSelection(characterId) {
+            const button = document.querySelector(`[data-character-id="${characterId}"]`);
+            const isSelected = button.classList.contains('selected');
+            const selectedCount = document.querySelectorAll('.character-select-button.selected').length;
+            const character = allCharacters[characterId];
+            
+            if (isSelected) {
+                button.classList.remove('selected');
+                button.dataset.selectionOrder = '';  // 선택 순서 제거
+                gameState.remainingPoints += character.points;
+            } else if (selectedCount < 4 && gameState.remainingPoints - character.points >= 0) {
+                button.classList.add('selected');
+                button.dataset.selectionOrder = selectedCount + 1;  // 선택 순서 저장
+                gameState.remainingPoints -= character.points;
+            }
+            
+            updateSelectedCount();
+        }
+
+        // 선택된 캐릭터 수 업데이트
+        function updateSelectedCount() {
+            const selectedCount = document.querySelectorAll('.character-select-button.selected').length;
+            document.getElementById('selected-count').textContent = selectedCount;
+            document.getElementById('remaining-points').textContent = gameState.remainingPoints;
+            document.getElementById('start-game-button').disabled = selectedCount !== 4;
+        }
+
+        // 선택된 캐릭터로 게임 시작
+        function startGameWithSelectedCharacters() {
+            const selectedButtons = Array.from(document.querySelectorAll('.character-select-button.selected'))
+                .sort((a, b) => parseInt(a.dataset.selectionOrder) - parseInt(b.dataset.selectionOrder));
+            const selectedCharacters = [];
+            
+            // 선택된 버튼들을 순서대로 처리
+            for (let i = 0; i < selectedButtons.length; i++) {
+                const button = selectedButtons[i];
+                const characterId = button.dataset.characterId;
+                const character = allCharacters[characterId];
+                selectedCharacters.push({
+                    id: character.id,
+                    name: character.name,
+                    trait: character.trait,
+                    action: null,
+                    injured: false,
+                    depressed: false,
+                    dead: false,
+                    happy: false
+                });
+            }
+            
+            // 게임 상태 초기화
+            gameState.characters = selectedCharacters;
+            
+            // 남은 포인트를 고기로 교환
+            if (gameState.remainingPoints > 0) {
+                const meatGained = gameState.remainingPoints * 3;
+                gameState.resources.meat += meatGained;
+                
+                // 이벤트 모달 표시
+                const modal = document.getElementById('night-events-modal');
+                const message = document.getElementById('night-event-message');
+                message.textContent = `남은 포인트 ${gameState.remainingPoints}pt를 고기 ${meatGained}개로 교환했어!`;
+                modal.style.display = 'flex';
+                
+                // 계속 버튼 클릭 시 게임 시작
+                const continueButton = document.getElementById('continue-night-button');
+                continueButton.onclick = function() {
+                    modal.style.display = 'none';
+                    document.getElementById('character-select-modal').style.display = 'none';
+                    initializeDOM();
+                };
+            } else {
+                // 포인트가 없으면 바로 게임 시작
+                document.getElementById('character-select-modal').style.display = 'none';
+                initializeDOM();
+            }
+        }
+
+        // 행동 버튼 상태 업데이트
+        function updateActionButtons() {
+            gameState.characters.forEach(character => {
+                if (!character.dead) {
+                    const actionsContainer = document.querySelector(`#actions-${character.id}`);
+                    if (actionsContainer) {
+                        const buttons = actionsContainer.querySelectorAll('.action-button');
+                        buttons.forEach(button => {
+                            const actionKey = button.dataset.action;
+                            if (actionKey && actions[actionKey]) {
+                                const isAvailable = actions[actionKey].isAvailable(character);
+                                button.style.display = isAvailable ? 'block' : 'none';
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
         // 게임 초기화 및 시작
         window.onload = function() {
-            initializeDOM();
+            initializeCharacterSelect();
+            document.getElementById('character-select-modal').style.display = 'flex';
         };
     </script>
 </body>
