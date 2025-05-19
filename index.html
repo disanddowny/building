@@ -92,6 +92,7 @@
             padding: 15px;
             border: 1px solid var(--border-color);
             position: relative;
+            z-index: 1;
         }
         
         .character-card.dead {
@@ -105,12 +106,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 2;
         }
         
         .selected-action {
-            font-size: 0.8em;
+            font-size: 0.9em;
             color: var(--accent-color);
-            margin-left: 8px;
+            padding: 4px 8px;
+            background-color: rgba(255, 149, 0, 0.2);
+            border-radius: 4px;
+            border: 1px solid var(--accent-color);
+            white-space: nowrap;
+            display: inline-block;
+            position: relative;
+            z-index: 3;
         }
         
         .character-trait {
@@ -150,6 +161,8 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
+            position: relative;
+            z-index: 1;
         }
         
         .action-button {
@@ -159,7 +172,7 @@
             background-color: #515154;
             color: white;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
             position: relative;
         }
         
@@ -172,21 +185,37 @@
             color: #8e8e93;
             cursor: not-allowed;
         }
+
+        .action-button.selected {
+            background-color: var(--accent-color);
+            color: black;
+            font-weight: bold;
+            box-shadow: 0 0 10px var(--accent-color);
+            animation: glow 1.5s infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 5px var(--accent-color);
+            }
+            to {
+                box-shadow: 0 0 15px var(--accent-color);
+            }
+        }
         
         .action-tooltip {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0,0,0,0.9);
+            position: fixed;
+            background-color: rgba(0,0,0,0.95);
             padding: 8px 12px;
             border-radius: 4px;
             width: 200px;
-            z-index: 100;
+            z-index: 1000;
             display: none;
             font-size: 0.85em;
             line-height: 1.4;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+            pointer-events: none;
         }
         
         .action-button:hover .action-tooltip {
@@ -337,7 +366,7 @@
 
         .character-select-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin: 20px 0;
         }
@@ -350,6 +379,12 @@
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
 
         .character-select-button:hover {
@@ -360,6 +395,29 @@
         .character-select-button.selected {
             border-color: var(--accent-color);
             background-color: rgba(255, 149, 0, 0.1);
+        }
+
+        .character-select-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+            background-color: rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+            filter: grayscale(100%);
+        }
+
+        .character-select-button.disabled:hover {
+            transform: none;
+            border-color: var(--border-color);
+        }
+
+        .character-select-button.disabled .character-name {
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .character-select-button.disabled .character-points {
+            color: var(--danger-color);
         }
 
         .character-select-button .character-name {
@@ -511,18 +569,18 @@
     <script>
         // 캐릭터 정의
         const allCharacters = {
-            yoonji: {
-                id: 'yoonji',
-                name: '정윤지',
-                trait: '채식주의자',
-                description: '고기를 먹지 못하고 야채만 먹을 수 있습니다.',
-                points: 0
+            yebbi: {
+                id: 'yebbi',
+                name: '예삐',
+                trait: '사냥꾼',
+                description: '숲에서 추가로 고기 2개를 가져옵니다.',
+                points: 3
             },
             seohyun: {
                 id: 'seohyun',
                 name: '신서현',
                 trait: '수석 개발자',
-                description: '수리 효과가 2배가 됩니다.',
+                description: '수리와 건설 효과가 2배가 됩니다.',
                 points: 2
             },
             pilgeun: {
@@ -532,12 +590,19 @@
                 description: '술을 소모해 [파티 준비] 행동을 할 수 있습니다.',
                 points: 2
             },
-            sungkook: {
-                id: 'sungkook',
-                name: '오성국',
-                trait: '대식가',
-                description: '하루에 식량을 2개씩 소비합니다.',
-                points: 0
+            chulyong: {
+                id: 'chulyong',
+                name: '김철용',
+                trait: '운전병',
+                description: '트럭 내구도가 50% 이상이면 아무도 폐허에서 부상당하지 않습니다.',
+                points: 2
+            },      
+            minji: {
+                id: 'minji',
+                name: '김민지',
+                trait: '가상세계 은둔자',
+                description: '폐허와 암시장에서 부상당하지 않습니다.',
+                points: 2
             },
             yuwon: {
                 id: 'yuwon',
@@ -553,20 +618,7 @@
                 description: '밤에 15% 확률로 시를 지어줍니다.',
                 points: 1
             },
-            geonhee: {
-                id: 'geonhee',
-                name: '김건희',
-                trait: '고관절 환자',
-                description: '밤마다 50% 확률로 부상당합니다. 부품 2개로 [고관절 개조]를 해야 디버프가 사라집니다.',
-                points: 0
-            },
-            minji: {
-                id: 'minji',
-                name: '김민지',
-                trait: '가상세계 은둔자',
-                description: '폐허와 암시장에서 부상당하지 않습니다.',
-                points: 2
-            },
+            
             jinyoung: {
                 id: 'jinyoung',
                 name: '최진영',
@@ -580,6 +632,48 @@
                 trait: '사냥개 조련사',
                 description: '지옥에서 온 사냥개 망고가 15% 확률로 갱단을 물리칩니다.',
                 points: 1
+            },
+             wonbin: {
+                id: 'wonbin',
+                name: '우원빈',
+                trait: '선교사',
+                description: '한 번에 2명 이상을 간호하면 행복해집니다.',
+                points: 1
+            },
+            yoonji: {
+                id: 'yoonji',
+                name: '정윤지',
+                trait: '채식주의자',
+                description: '고기를 먹지 못하고 야채만 먹을 수 있습니다.',
+                points: 0
+            },
+            jaeyoung: {
+                id: 'jaeyoung',
+                name: '장재영',
+                trait: '사이코패스',
+                description: '간호할 수 없습니다.',
+                points: 0
+            },
+            sungkook: {
+                id: 'sungkook',
+                name: '오성국',
+                trait: '대식가',
+                description: '하루에 식량을 2개씩 소비합니다.',
+                points: -1
+            },
+            geonhee: {
+                id: 'geonhee',
+                name: '김건희',
+                trait: '고관절 환자',
+                description: '밤마다 50% 확률로 부상당합니다. 부품 2개로 [고관절 개조]를 해야합니다.',
+                points: -1
+            },
+            gunsoo: {
+                id: 'gunsoo',
+                name: '양건수',
+                trait: '사랑꾼',
+                description: '밤에 15% 확률로 고백합니다.',
+                points: -1
             }
         };
 
@@ -588,11 +682,11 @@
             day: 1,
             isNight: false,
             truckDurability: 0,
-            defenseFortification: 5, // 기본 방어도 증가량
+            defenseFortification: 1, // 기본 방어도 증가량
             defense: 100,
             resources: {
-                meat: 3,
-                vegetables: 3,
+                meat: 2,
+                vegetables: 2,
                 parts: 0,
                 alcohol: 0
             },
@@ -692,6 +786,13 @@
                         const vegetablesFound = Math.floor(Math.random() * (3 - min)) + min; // min~2
                         gameState.resources.meat += meatFound;
                         gameState.resources.vegetables += vegetablesFound;
+                        
+                        // 예삐는 추가로 고기 2개를 가져옴
+                        if (character.name === '예삐') {
+                            gameState.resources.meat += 2;
+                            return `${prefix}사냥에 성공했네! 고기 ${meatFound + 2}개, 야채 ${vegetablesFound}개를 가져왔다네.`;
+                        }
+                        
                         return `${prefix}숲에 가서 고기 ${meatFound}개, 야채 ${vegetablesFound}개를 가져왔어.`;
                     }
                 }
@@ -709,8 +810,13 @@
                     gameState.resources.parts += partsFound;
                     gameState.resources.alcohol += alcoholFound;
                     let message = `${prefix}폐허에 가서 부품 ${partsFound}개, 술 ${alcoholFound}개를 가져왔어.`;
-                    // 50% 확률로 부상 (김민지는 제외)
-                    if (Math.random() < 0.5 && character.name !== '김민지') {
+                    
+                    // 김철용의 특수 능력: 트럭 내구도 50% 이상이면 부상 방지
+                    const chulyong = gameState.characters.find(c => c.name === '김철용');
+                    const hasChulyongProtection = chulyong && !chulyong.dead && gameState.truckDurability >= 50;
+                    
+                    // 50% 확률로 부상 (김민지와 김철용의 보호 효과가 있는 경우 제외)
+                    if (Math.random() < 0.5 && character.name !== '김민지' && !hasChulyongProtection) {
                         character.injured = true;
                         message += " 하지만 부상을 입었어.";
                     }
@@ -740,10 +846,21 @@
                         
                         let message = '';
                         if (alcoholGained < 0) {
+                            if (character.happy) {
+                                setHappy(character, false);
+                                message = `${prefix}도박장에서 ${Math.abs(alcoholGained)}개를 잃고 도망치다가 총에 맞았어... 난 불행해...`;
+                            } else {
+                                message = `${prefix}도박장에서 ${Math.abs(alcoholGained)}개를 잃고 도망치다가 총에 맞았어...`;
+                            }
                             character.injured = true;
-                            message = `${prefix}도박장에서 ${Math.abs(alcoholGained)}개를 잃고 도망치다가 총에 맞았어...`;
                         } else if (alcoholGained === 0) {
-                            message = `${prefix}도박장에서 아무것도 못 가져왔어.`;
+                            if (character.happy) {
+                                setHappy(character, false);
+                                message = `${prefix}도박장에서 다 잃었어... 이제 안 행복해...`;
+                            } else {
+                                setDepressed(character, true);
+                                message = `${prefix}도박장에서 다 잃었어... 우울해...`;
+                            }
                         } else if (alcoholGained === 1) {
                             message = `${prefix}도박장에서 술 1개를 따왔어.`;
                         } else if (alcoholGained === 2) {
@@ -765,8 +882,13 @@
                     let message = `${prefix}암시장에 가서 술 1개를 고기 ${meatFound}개로 바꿔왔어.`;
                     // 50% 확률로 사기꾼을 만나 부상 (김민지는 제외)
                     if (Math.random() < 0.5 && character.name !== '김민지') {
+                        if (character.happy) {
+                            setHappy(character, false);
+                            message += " 근데 거래 끝나고 뒤에서 총을 쏘더라고. 행복이 사라졌어...";
+                        } else {
+                            message += " 근데 거래 끝나고 뒤에서 총을 쏘더라고.";
+                        }
                         character.injured = true;
-                        message += " 근데 거래 끝나고 뒤에서 총을 쏘더라고.";
                     }
                     return message;
                 }
@@ -777,6 +899,9 @@
                 isAvailable: (character) => {
                     // 캐릭터가 간호할 수 있는 상태인지 확인
                     if (character.dead || character.injured || character.depressed) return false;
+                    
+                    // 장재영은 간호할 수 없음
+                    if (character.name === '장재영') return false;
                     
                     // 간호할 부상자가 있는지 확인
                     let hasInjured = false;
@@ -797,16 +922,45 @@
                         }
                     });
                     
-                    return `부상당한 ${healedCharacters.join(', ')}를 간호했어.`;
+                    let message = `부상당한 ${healedCharacters.join(', ')}를 간호했어.`;
+                    
+                    // 우원빈의 특수 능력: 2명 이상 간호 시 행복해짐
+                    if (character.name === '우원빈' && healedCharacters.length >= 2) {
+                        setHappy(character, true);
+                        message += " 이렇게 많은 사람을 도울 수 있어서 행복해!";
+                    }
+                    
+                    return message;
                 }
             },
             rest: {
                 name: '휴식',
-                description: '자신의 우울을 치료한다.',
-                isAvailable: (character) => !character.dead && character.depressed,
+                description: '자신의 우울이나 부상을 치료한다.',
+                isAvailable: (character) => !character.dead && (character.depressed || character.injured),
                 execute: (character) => {
-                    setDepressed(character, false);
-                    return "휴식을 취해서 마음이 편안해졌어.";
+                    let message = "";
+                    
+                    // 우울과 부상이 동시에 있는 경우
+                    if (character.depressed && character.injured) {
+                        // 랜덤으로 하나 선택
+                        if (Math.random() < 0.5) {
+                            setDepressed(character, false);
+                            message = "휴식을 취해서 마음이 편안해졌어.";
+                        } else {
+                            setInjured(character, false);
+                            message = "휴식을 취해서 부상이 나았어.";
+                        }
+                    } else if (character.depressed) {
+                        // 우울만 있는 경우
+                        setDepressed(character, false);
+                        message = "휴식을 취해서 마음이 편안해졌어.";
+                    } else if (character.injured) {
+                        // 부상만 있는 경우
+                        setInjured(character, false);
+                        message = "휴식을 취해서 부상이 나았어.";
+                    }
+                    
+                    return message;
                 }
             },
             guard: {
@@ -855,14 +1009,21 @@
                 isAvailable: (character) => !character.dead && gameState.resources.parts > 0,
                 execute: (character) => {
                     // 부품 소모는 선택 시 처리
-                    gameState.defenseFortification += 2;
+                    let defenseIncrease = 2;
+                    
+                    // 서현은 건설 효과 2배
+                    if (character.name === '신서현') {
+                        defenseIncrease *= 2;
+                    }
+                    
+                    gameState.defenseFortification += defenseIncrease;
                     return `건설을 해서 앞으로 경계를 서면 방어도가 ${gameState.defenseFortification}% 올라가게 됐어.`;
                 }
             },
             hipSurgery: {
                 name: '고관절 개조',
                 description: '🔧부품 2개를 소모해 고관절을 개조한다.',
-                isAvailable: (character) => character.name === '김건희' && !character.dead && gameState.resources.parts >= 2,
+                isAvailable: (character) => character.name === '김건희' && !character.dead && gameState.resources.parts >= 2 && !character.hasHipSurgery,
                 execute: (character) => {
                     gameState.resources.parts -= 2;
                     character.trait = '고관절 사이보그';
@@ -901,10 +1062,12 @@
             card.className = `character-card ${character.dead ? 'dead' : ''}`;
             card.id = `character-${character.id}`;
             
+            const actionName = character.action ? actions[character.action].name : '';
+            
             card.innerHTML = `
                 <div class="character-name">
                     <span>${character.name}</span>
-                    ${character.action ? `<span class="selected-action">(${actions[character.action].name})</span>` : ''}
+                    ${actionName ? `<span class="selected-action">${actionName}</span>` : ''}
                 </div>
                 <div class="character-trait">${character.trait}</div>
                 <div class="status-labels" id="status-${character.id}">
@@ -934,13 +1097,32 @@
                         button.dataset.action = actionKey;
                         button.disabled = character.action !== null;
                         
-                        // 툴크 추가
+                        // 툴팁 추가
                         const tooltip = document.createElement('div');
                         tooltip.className = 'action-tooltip';
                         tooltip.textContent = character.name === '이유원' && actionKey === 'blackmarket' ? 
                             '🍺술을 걸고 도박을 한다.' : 
                             action.description;
-                        button.appendChild(tooltip);
+                        
+                        // 툴팁 위치 업데이트 함수
+                        const updateTooltipPosition = (e) => {
+                            const rect = button.getBoundingClientRect();
+                            tooltip.style.left = `${rect.left + (rect.width / 2)}px`;
+                            tooltip.style.top = `${rect.top - tooltip.offsetHeight - 10}px`;
+                        };
+                        
+                        // 툴팁을 body에 추가
+                        document.body.appendChild(tooltip);
+                        
+                        // 호버 이벤트
+                        button.addEventListener('mouseenter', (e) => {
+                            updateTooltipPosition(e);
+                            tooltip.style.display = 'block';
+                        });
+                        
+                        button.addEventListener('mouseleave', () => {
+                            tooltip.style.display = 'none';
+                        });
                         
                         // 클릭 이벤트
                         button.addEventListener('click', () => {
@@ -986,11 +1168,14 @@
                 }
             }
             
-            // 버튼 비활성화
+            // 선택된 버튼 표시
             const actionsContainer = document.querySelector(`#actions-${character.id}`);
             const buttons = actionsContainer.querySelectorAll('.action-button');
             buttons.forEach(button => {
                 button.disabled = true;
+                if (button.dataset.action === actionKey) {
+                    button.classList.add('selected');
+                }
             });
             
             // 턴 종료 버튼 활성화 여부 체크
@@ -1169,6 +1354,13 @@
             if (!character.injured) {
                 setInjured(character, true);
                 gameState.nightMessages.push(`${character.name}: 부상을 입었어...`);
+                
+                // 장재영이 살아있으면 50% 확률로 행복해짐
+                const jaeyoung = gameState.characters.find(c => c.name === '장재영');
+                if (jaeyoung && !jaeyoung.dead && Math.random() < 0.1) {
+                    setHappy(jaeyoung, true);
+                    gameState.nightMessages.push(`${jaeyoung.name}: 흐흐...`);
+                }
             } else {
                 character.dead = true;
                 gameState.nightMessages.push(`${character.name}: 커헉! (피 토하는 소리)`);
@@ -1185,9 +1377,9 @@
                 const deadCharacter = recentlyDeadCharacters[recentlyDeadCharacters.length - 1];
                 deadCharacter.wasProcessed = true; // 이미 언급된 캐릭터 표시
                 
-                // 각 캐릭터별로 50% 확률로 우울 반응
+                // 각 캐릭터별로 50% 확률로 우울 반응 (장재영 제외)
                 gameState.characters.forEach(character => {
-                    if (!character.dead && Math.random() < 0.5) {
+                    if (!character.dead && character.name !== '장재영' && Math.random() < 0.5) {
                         if (!character.depressed) {
                             setDepressed(character, true);
                             gameState.nightMessages.push(`${character.name}: ${deadCharacter.name}이가 죽다니...`);
@@ -1206,6 +1398,29 @@
             const geonhee = gameState.characters.find(c => c.name === '김건희');
             if (geonhee && !geonhee.dead && !geonhee.hasHipSurgery && Math.random() < 0.5) {
                 makeInjured(geonhee);
+            }
+
+            // 양건수의 고백 체크
+            const gunsoo = gameState.characters.find(c => c.name === '양건수');
+            if (gunsoo && !gunsoo.dead && Math.random() < 0.15) {
+                // 살아있는 다른 캐릭터들 중에서 랜덤 선택
+                const livingCharacters = gameState.characters.filter(c => !c.dead && c.name !== '양건수');
+                if (livingCharacters.length > 0) {
+                    const target = livingCharacters[Math.floor(Math.random() * livingCharacters.length)];
+                    
+                    // 고백 메시지
+                    gameState.nightMessages.push(`${gunsoo.name}: ${target.name} 씨... 제 마음을 받아주세요...`);
+                    
+                    // 50% 확률로 거절당함
+                    if (Math.random() < 0.5) {
+                        gameState.nightMessages.push(`${target.name}: 으으... 그만...`);
+                        setDepressed(target, true);
+                        gameState.nightMessages.push(`${target.name}: 우울해...`);
+                    } else {
+                        setDepressed(gunsoo, true);
+                        gameState.nightMessages.push(`${gunsoo.name}: 힝...`);
+                    }
+                }
             }
 
             // 습격 체크 (방어도의 확률로 습격 없음)
@@ -1573,6 +1788,7 @@
             // 초기 포인트 설정
             gameState.remainingPoints = 4;
             updateSelectedCount();
+            updateCharacterSelectButtons();
         }
 
         // 캐릭터 선택 토글
@@ -1592,7 +1808,9 @@
                 gameState.remainingPoints -= character.points;
             }
             
+            // 포인트가 변경될 때마다 버튼 상태 업데이트
             updateSelectedCount();
+            updateCharacterSelectButtons();
         }
 
         // 선택된 캐릭터 수 업데이트
@@ -1601,6 +1819,34 @@
             document.getElementById('selected-count').textContent = selectedCount;
             document.getElementById('remaining-points').textContent = gameState.remainingPoints;
             document.getElementById('start-game-button').disabled = selectedCount !== 4;
+        }
+
+        // 캐릭터 선택 버튼 상태 업데이트
+        function updateCharacterSelectButtons() {
+            const buttons = document.querySelectorAll('.character-select-button');
+            const selectedCount = document.querySelectorAll('.character-select-button.selected').length;
+            
+            buttons.forEach(button => {
+                const characterId = button.dataset.characterId;
+                const character = allCharacters[characterId];
+                const isSelected = button.classList.contains('selected');
+                
+                // 이미 선택된 캐릭터는 비활성화하지 않음
+                if (isSelected) {
+                    button.classList.remove('disabled');
+                    return;
+                }
+                
+                // 선택할 수 없는 조건 체크
+                const cannotSelect = selectedCount >= 4 || gameState.remainingPoints - character.points < 0;
+                
+                // 버튼 상태 업데이트
+                if (cannotSelect) {
+                    button.classList.add('disabled');
+                } else {
+                    button.classList.remove('disabled');
+                }
+            });
         }
 
         // 선택된 캐릭터로 게임 시작
@@ -1631,13 +1877,13 @@
             
             // 남은 포인트를 고기로 교환
             if (gameState.remainingPoints > 0) {
-                const meatGained = gameState.remainingPoints * 3;
+                const meatGained = gameState.remainingPoints * 4;
                 gameState.resources.meat += meatGained;
                 
                 // 이벤트 모달 표시
                 const modal = document.getElementById('night-events-modal');
                 const message = document.getElementById('night-event-message');
-                message.textContent = `남은 포인트 ${gameState.remainingPoints}pt를 고기 ${meatGained}개로 교환했어!`;
+                message.textContent = `남은 ${gameState.remainingPoints}pt는 고기 ${meatGained}개로 교환해드렸습니다.`;
                 modal.style.display = 'flex';
                 
                 // 계속 버튼 클릭 시 게임 시작
